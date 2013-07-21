@@ -1,0 +1,11 @@
+Init:
+  Start: {when: "everything ready"}
+
+Start:
+  Exit: {when: "close"}
+
+Exit:
+  CleanUp:
+
+CleanUp:
+
