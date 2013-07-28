@@ -572,6 +572,34 @@ function ExportAsSVG() {
   this.save = this.restore = this.clearRect = function(){};
 }
 
+/**
+ * This class access directly the global variables nodes and links.
+ * Right now it only contains one function, toYAML(), which is the exporter itself.
+ */
+function ExportAsYAML() {
+  this.toYAML = function() {
+	var yaml = '';
+	for (var i = 0; i < nodes.length; i++) {
+		yaml += nodes[i].text + ":\n";
+		for (var j = 0; j < links.length; j++) {
+			if (links[j].nodeA == nodes[i]) {
+				yaml += "\t" + links[j].nodeB.text + ": ";
+				if (links[j].text != '') {
+					yaml += "{when: \""+links[j].text+"\"}";
+				}
+				yaml += "\n";
+			}
+		}		
+	}
+	// use currentLink to point the first node or something?
+ 	// if (currentLink != null) {}
+
+	return yaml;	
+  };
+
+}
+
+
 var greekLetterNames = [ 'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega' ];
 
 function convertLatexShortcuts(text) {
@@ -969,6 +997,13 @@ function saveAsLaTeX() {
   var texData = exporter.toLaTeX();
   output(texData);
 }
+
+function saveAsYAML() {
+  var exporter = new ExportAsYAML();
+  var yamlData = exporter.toYAML();
+  output(yamlData);
+}
+
 
 function det(a, b, c, d, e, f, g, h, i) {
   return a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g;
