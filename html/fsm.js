@@ -1078,6 +1078,13 @@ function saveAsYAML() {
   output(yamlData);
 }
 
+function setColorForCurrentState(color) {
+	 if (selectedObject && (selectedObject instanceof Node)) {
+	 	selectedObject.color = color;
+	 	draw();
+	 }
+}
+
 
 function det(a, b, c, d, e, f, g, h, i) {
   return a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g;
