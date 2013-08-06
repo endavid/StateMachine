@@ -588,7 +588,7 @@ function ExportAsYAML() {
 		yaml += nodes[i].text + ":\n";
 		yaml += "  attributes: {x: "+nodes[i].x + ", y: "+nodes[i].y;
 		if (nodes[i].color) {
-			yaml += ", color: "+nodes[i].color;
+			yaml += ", color: \""+nodes[i].color+"\"";
 		}
 		yaml += "}\n";
 		for (var j = 0; j < links.length; j++) {
@@ -1047,7 +1047,7 @@ function saveAsPNG() {
   drawUsing(canvas.getContext('2d'));
   selectedObject = oldSelectedObject;
   var pngData = canvas.toDataURL('image/png');
-  document.location.href = pngData;
+  window.open(pngData);
 }
 
 function saveAsSVG() {

@@ -1,19 +1,8 @@
 <!doctype html>
 <html><head>
-	<title>Finite State Machine Designer - by Evan Wallace</title>
+	<title>Finite State Machine Designer</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 	<style type="text/css"><!--
-
-body {
-	text-align: center;
-	background: #DFDFDF;
-	margin: 0 30px 100px 30px;
-	font: 14px/18px 'Lucida Grande', 'Segoe UI', sans-serif;
-}
-
-h1 {
-	font: bold italic 50px Georgia, serif;
-}
-
 canvas {
 	display: block;
 	max-width: 1280px;
@@ -22,41 +11,15 @@ canvas {
 	-moz-border-radius: 20px;
 	margin: 10px auto;
 }
-
-a {
-	color: black;
+body {
+	background: #DFDFDF;
+	padding-top: 60px;
 }
-
-div {
-	margin: 30px auto;
-	text-align: left;
-	max-width: 800px;
-}
-
-.error {
-	display: block;
-	color: red;
-	font-size: 28px;
-	line-height: 30px;
-	padding: 30px;
-}
-
-p {
-	margin: 30px 0;
-	line-height: 20px;
-}
-
-.center {
-	text-align: center;
-}
-
 textarea {
-	display: none;
-	width: 75%;
+	width: 90%;
 	height: 400px;
-	margin: 0 auto;
+	margin: auto;
 }
-
 	--></style>
 	<script src="js/es5-shim.js"></script>
 	<script src="js/js-yaml.js"></script>
@@ -101,38 +64,75 @@ if (typeof btoa == 'undefined') {
 	<script type="text/javascript"><!--
 	function importFSMFromYAML()
 	{
-		var text = document.getElementById('output').value;
+		var text = document.getElementById('sourceinputarea').value;
 		var doc = jsyaml.load(text);
 		//console.log(doc);
 		var exporter = new ExportAsYAML();
 		exporter.restoreYAML(doc);
 		draw();
 	}
-	// executed after finished loading
-	window.addEventListener('load', function () {
-	  // show text block
-	  var element = document.getElementById('output');
-	  element.style.display = 'block';	
-	});
 	-->
 	</script>
+	<!-- JavaScript plugins (requires jQuery) -->
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
 </head><body>
-	<h1>Finite State Machine Designer</h1>
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-fixed-top">
+      <div class="container">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">State Machine Designer</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Import <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a data-toggle="modal" href="#modalImporterWindow">YAML</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Export as <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsYAML()">YAML</a></li>
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsSVG()">SVG</a></li>
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsLaTeX()">LaTeX</a></li>
+                <li><a href="javascript:saveAsPNG()">PNG</a></li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav pull-right">
+            <li><a data-toggle="modal" href="#modalHelpWindow">Help</a></li>
+            <li><a data-toggle="modal" href="#modalAboutWindow">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+	<h1>State Machine</h1>
 	<canvas id="canvas" width="1280" height="1024">
 		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
 	</canvas>
-	<div>
-		<p class="center">Export as: 
-		<a href="javascript:saveAsPNG()">PNG</a> 
-		| <a href="javascript:saveAsSVG()">SVG</a>
-		| <a href="javascript:saveAsLaTeX()">LaTeX</a>
-		| <a href="javascript:saveAsYAML()">YAML</a>
-		<br/>
-		Import as:
-		<a href="javascript:importFSMFromYAML()">YAML</a>
-		</p>
-		<textarea id="output"></textarea>
-		<p>The big white box above is the FSM designer.&nbsp; Here's how to use it:</p>
+    </div> <!-- container -->
+    
+    	  <!-- Modal -->
+  <div class="modal fade" id="modalHelpWindow">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Help</h4>
+        </div>
+        <div class="modal-body">
+		<p>The big white box above on top is the State Machine designer.&nbsp; Here's how to use it:</p>
 		<ul>
 			<li><b>Add a state:</b> double-click on the canvas</li>
 			<li><b>Add an arrow:</b> shift-drag on the canvas</li>
@@ -143,9 +143,67 @@ if (typeof btoa == 'undefined') {
 			<li><b>Type numeric subscript:</b> put an underscore before the number (like "S_0")</li>
 			<li><b>Type greek letter:</b> put a backslash before it (like "\beta")</li>
 		</ul>
-		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
-	</div>
-	<p>Created by <a href="http://madebyevan.com/">Evan Wallace</a> in 2010
-	<br/>YAML import/export functions by <a href="http://endavid.com">David Gavilan</a> in 2013
-	</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <div class="modal fade" id="modalAboutWindow">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">About</h4>
+        </div>
+        <div class="modal-body">
+	        <p>Finite State Machine Designer created by <a href="http://madebyevan.com/">Evan Wallace</a> in 2010
+	        </p>
+	        <p>Modified by <a href="http://endavid.com">David Gavilan</a> in 2013 (YAML import/export functions, Bootstrap, etc)
+	        </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <div class="modal fade" id="modalExporterWindow">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Output</h4>
+        </div>
+        <div class="modal-body">
+			<textarea id="output"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <div class="modal fade" id="modalImporterWindow">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Paste your YAML code here</h4>
+        </div>
+        <div class="modal-body">
+			<textarea id="sourceinputarea"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="importFSMFromYAML()">Import</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+    
 </body></html>
