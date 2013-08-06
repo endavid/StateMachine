@@ -632,6 +632,8 @@ function ExportAsYAML() {
     for (var n in json) {
 	    for (var targetNode in json[n]) {
 		    if (targetNode === "pos") continue; // not a State
+		    if (!nodes[nodeIndeces[n]]) continue;
+		    if (!nodes[nodeIndeces[targetNode]]) continue;
 		    var link = new Link(nodes[nodeIndeces[n]], nodes[nodeIndeces[targetNode]]);
 		    link.parallelPart = 0.5;
 		    link.perpendicularPart = 0;
