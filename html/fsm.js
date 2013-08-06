@@ -581,21 +581,71 @@ function ExportAsYAML() {
 	var yaml = '';
 	for (var i = 0; i < nodes.length; i++) {
 		yaml += nodes[i].text + ":\n";
+		yaml += "  pos: {x: "+nodes[i].x + ", y: "+nodes[i].y+"}\n";
 		for (var j = 0; j < links.length; j++) {
 			if (links[j].nodeA == nodes[i]) {
-				yaml += "\t" + links[j].nodeB.text + ": ";
+				yaml += "  " + links[j].nodeB.text + ": ";
 				if (links[j].text != '') {
 					yaml += "{when: \""+links[j].text+"\"}";
 				}
 				yaml += "\n";
 			}
-		}		
+		}
+		yaml += "\n"
 	}
 	// use currentLink to point the first node or something?
  	// if (currentLink != null) {}
-
+ 	
 	return yaml;	
   };
+  
+  this.restoreYAML = function(json) {
+    nodes = [];
+    links = [];
+    var nodeIndeces = {}
+    var startPos = {x: 32, y: 32};
+    var gridStep = {x: 96, y: 96};
+    var i = 0;
+    // first add the nodes
+    for (var n in json) { /* loop through the nodes */
+    	console.log(n);
+    	console.log(json[n]);
+    	var pos = {x: startPos.x, y:startPos.y};
+    	if (json[n] && json[n].pos) {
+	    	pos = json[n].pos;
+    	} else {
+    		// place nodes as if in a grid
+    		if (startPos.x + gridStep.x >= canvas.width) {
+	    		startPos.y += gridStep.y;
+	    		startPos.x = 32;
+    		} else {
+		    	startPos.x += gridStep.x;
+		    }
+    	}
+    	var node = new Node(pos.x, pos.y);
+    	node.isAcceptState = false;
+    	node.text = n;
+    	nodes.push(node);
+    	nodeIndeces[n] = i;
+    	i++;
+    }
+    // now create the links
+    for (var n in json) {
+	    for (var targetNode in json[n]) {
+		    if (targetNode === "pos") continue; // not a State
+		    var link = new Link(nodes[nodeIndeces[n]], nodes[nodeIndeces[targetNode]]);
+		    link.parallelPart = 0.5;
+		    link.perpendicularPart = 0;
+		    link.lineAngleAdjust = 0;
+		    link.text = "";
+		    if (json[n] && json[n][targetNode] && json[n][targetNode].when) {
+			    link.text = json[n][targetNode].when;
+		    }
+		    console.log(link);
+		    links.push(link);
+	    }
+    }
+  }
 
 }
 

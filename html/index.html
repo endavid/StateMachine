@@ -58,6 +58,8 @@ textarea {
 }
 
 	--></style>
+	<script src="js/es5-shim.js"></script>
+	<script src="js/js-yaml.js"></script>
 	<script type="text/javascript" src="fsm.js"></script>
 	<script type="text/javascript"><!--
 
@@ -94,7 +96,26 @@ if (typeof btoa == 'undefined') {
     }
 }
 
-	// --></script>
+	// -->
+	</script>
+	<script type="text/javascript"><!--
+	function importFSMFromYAML()
+	{
+		var text = document.getElementById('output').value;
+		var doc = jsyaml.load(text);
+		//console.log(doc);
+		var exporter = new ExportAsYAML();
+		exporter.restoreYAML(doc);
+		draw();
+	}
+	// executed after finished loading
+	window.addEventListener('load', function () {
+	  // show text block
+	  var element = document.getElementById('output');
+	  element.style.display = 'block';	
+	});
+	-->
+	</script>
 </head><body>
 	<h1>Finite State Machine Designer</h1>
 	<canvas id="canvas" width="800" height="600">
@@ -106,6 +127,9 @@ if (typeof btoa == 'undefined') {
 		| <a href="javascript:saveAsSVG()">SVG</a>
 		| <a href="javascript:saveAsLaTeX()">LaTeX</a>
 		| <a href="javascript:saveAsYAML()">YAML</a>
+		<br/>
+		Import as:
+		<a href="javascript:importFSMFromYAML()">YAML</a>
 		</p>
 		<textarea id="output"></textarea>
 		<p>The big white box above is the FSM designer.&nbsp; Here's how to use it:</p>
@@ -121,18 +145,7 @@ if (typeof btoa == 'undefined') {
 		</ul>
 		<p>This was made in HTML5 and JavaScript using the canvas element.</p>
 	</div>
-	<p>Created by <a href="http://madebyevan.com/">Evan Wallace</a> in 2010</p>
-	<script type="text/javascript"><!--
- 
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-17521220-1']);
-_gaq.push(['_trackPageview']);
- 
-(function() {
-	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-})();
-
-	// --></script> 
+	<p>Created by <a href="http://madebyevan.com/">Evan Wallace</a> in 2010
+	<br/>YAML import/export functions by <a href="http://endavid.com">David Gavilan</a> in 2013
+	</p>
 </body></html>
