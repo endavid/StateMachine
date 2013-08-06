@@ -195,6 +195,11 @@ Node.prototype.draw = function(c) {
   // draw the circle
   c.beginPath();
   c.arc(this.x, this.y, nodeRadius, 0, 2 * Math.PI, false);
+  if (this.color) { // color fill
+	  c.fillStyle=this.color;
+	  c.fill();
+  }
+  c.fillStyle="black";
   c.stroke();
 
   // draw the text
@@ -581,7 +586,11 @@ function ExportAsYAML() {
 	var yaml = '';
 	for (var i = 0; i < nodes.length; i++) {
 		yaml += nodes[i].text + ":\n";
-		yaml += "  pos: {x: "+nodes[i].x + ", y: "+nodes[i].y+"}\n";
+		yaml += "  attributes: {x: "+nodes[i].x + ", y: "+nodes[i].y;
+		if (nodes[i].color) {
+			yaml += ", color: "+nodes[i].color;
+		}
+		yaml += "}\n";
 		for (var j = 0; j < links.length; j++) {
 			if (links[j].nodeA == nodes[i]) {
 				yaml += "  " + links[j].nodeB.text + ": ";
@@ -608,10 +617,18 @@ function ExportAsYAML() {
     var i = 0;
     // first add the nodes
     for (var n in json) { /* loop through the nodes */
-    	//console.log(n);
+    	//console.log(json[n]);
     	var pos = {x: startPos.x, y:startPos.y};
-    	if (json[n] && json[n].pos) {
-	    	pos = json[n].pos;
+    	var color = "";
+    	if (json[n] && json[n].attributes) {
+    		var att = json[n].attributes;
+    		if (att.x && att.y) {
+		    	pos.x = json[n].attributes.x;
+		    	pos.y = json[n].attributes.y;
+		    }
+		    if (att.color) {
+		    	color = att.color;
+		    }
     	} else {
     		// place nodes as if in a grid
     		if (startPos.x + gridStep.x >= canvas.width) {
@@ -624,6 +641,9 @@ function ExportAsYAML() {
     	var node = new Node(pos.x, pos.y);
     	node.isAcceptState = false;
     	node.text = n;
+    	if (color !== "") {
+    		node.color = att.color;
+    	}
     	nodes.push(node);
     	nodeIndeces[n] = i;
     	i++;
@@ -631,7 +651,7 @@ function ExportAsYAML() {
     // now create the links
     for (var n in json) {
 	    for (var targetNode in json[n]) {
-		    if (targetNode === "pos") continue; // not a State
+		    if (targetNode === "attributes") continue; // not a State
 		    if (!nodes[nodeIndeces[n]]) continue;
 		    if (!nodes[nodeIndeces[targetNode]]) continue;
 		    var link = new Link(nodes[nodeIndeces[n]], nodes[nodeIndeces[targetNode]]);
@@ -1092,6 +1112,9 @@ function restoreBackup() {
       var node = new Node(backupNode.x, backupNode.y);
       node.isAcceptState = backupNode.isAcceptState;
       node.text = backupNode.text;
+      if (backupNode['color']) {
+	      node.color = backupNode['color'];
+      }
       nodes.push(node);
     }
     for (var i = 0; i < backup.links.length; i++) {
@@ -1137,8 +1160,11 @@ function saveBackup() {
       'x': node.x,
       'y': node.y,
       'text': node.text,
-      'isAcceptState': node.isAcceptState
+      'isAcceptState': node.isAcceptState,
     };
+    if (node.color) {
+	    backupNode['color'] = node.color;
+    }
     backup.nodes.push(backupNode);
   }
   for (var i = 0; i < links.length; i++) {
