@@ -608,8 +608,7 @@ function ExportAsYAML() {
     var i = 0;
     // first add the nodes
     for (var n in json) { /* loop through the nodes */
-    	console.log(n);
-    	console.log(json[n]);
+    	//console.log(n);
     	var pos = {x: startPos.x, y:startPos.y};
     	if (json[n] && json[n].pos) {
 	    	pos = json[n].pos;
@@ -636,12 +635,15 @@ function ExportAsYAML() {
 		    var link = new Link(nodes[nodeIndeces[n]], nodes[nodeIndeces[targetNode]]);
 		    link.parallelPart = 0.5;
 		    link.perpendicularPart = 0;
+		    if (json[targetNode] && json[targetNode][n]) {
+		    	// curve lines a bit for double-linked nodes
+			    link.perpendicularPart = 15;		    
+		    }
 		    link.lineAngleAdjust = 0;
 		    link.text = "";
 		    if (json[n] && json[n][targetNode] && json[n][targetNode].when) {
 			    link.text = json[n][targetNode].when;
 		    }
-		    console.log(link);
 		    links.push(link);
 	    }
     }
