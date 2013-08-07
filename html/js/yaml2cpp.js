@@ -50,7 +50,7 @@ function StateMachineCppExporter(json) {
 			// loop through the links
 			for (var targetNode in json[n]) {
 			    if (targetNode === "attributes") continue; // not a State
-			    var jumpTo = "\tSwitchTo("+stateMachineName+"::State"+targetNode+");\n";
+			    var jumpTo = "\tSwitchTo(&"+stateMachineName+"::State"+targetNode+");\n";
 			    // condition ("when" exists?)
 			    if (json[n][targetNode] && json[n][targetNode].when) {
 				    output += "\tif (false /* "+json[n][targetNode].when+" */ {\n";

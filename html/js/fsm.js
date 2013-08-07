@@ -26,6 +26,8 @@
  OTHER DEALINGS IN THE SOFTWARE.
 */
 
+var gStateMachineFontSize = 14;
+
 function Link(a, b) {
   this.nodeA = a;
   this.nodeB = b;
@@ -455,7 +457,7 @@ function ExportAsLaTeX() {
   };
   this.measureText = function(text) {
     var c = canvas.getContext('2d');
-    c.font = '20px "Times New Romain", serif';
+    c.font = gStateMachineFontSize+'px "Times New Romain", serif';
     return c.measureText(text);
   };
   this.advancedFillText = function(text, originalText, x, y, angleOrNull) {
@@ -488,7 +490,7 @@ function ExportAsSVG() {
   this.fillStyle = 'black';
   this.strokeStyle = 'black';
   this.lineWidth = 1;
-  this.font = '12px Arial, sans-serif';
+  this.font = gStateMachineFontSize+'px Arial, sans-serif';
   this._points = [];
   this._svgData = '';
   this._transX = 0;
@@ -559,14 +561,14 @@ function ExportAsSVG() {
   };
   this.measureText = function(text) {
     var c = canvas.getContext('2d');
-    c.font = '20px "Times New Romain", serif';
+    c.font = gStateMachineFontSize+'px "Times New Romain", serif';
     return c.measureText(text);
   };
   this.fillText = function(text, x, y) {
     x += this._transX;
     y += this._transY;
     if (text.replace(' ', '').length > 0) {
-      this._svgData += '\t<text x="' + fixed(x, 3) + '" y="' + fixed(y, 3) + '" font-family="Times New Roman" font-size="20">' + textToXML(text) + '</text>\n';
+      this._svgData += '\t<text x="' + fixed(x, 3) + '" y="' + fixed(y, 3) + '" font-family="Times New Roman" font-size="'+gStateMachineFontSize+'">' + textToXML(text) + '</text>\n';
     }
   };
   this.translate = function(x, y) {
@@ -722,7 +724,7 @@ function canvasHasFocus() {
 
 function drawText(c, originalText, x, y, angleOrNull, isSelected) {
   text = convertLatexShortcuts(originalText);
-  c.font = '20px "Times New Roman", serif';
+  c.font = gStateMachineFontSize+'px "Times New Roman", serif';
   var width = c.measureText(text).width;
 
   // center the text
