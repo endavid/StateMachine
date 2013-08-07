@@ -103,7 +103,9 @@ def createCpp(states)
 			file.puts "void #{$classname}::State#{key}(const float time_ms)\n{"
 			if !value.nil?
 				value.each {|jumpKey, jumpCondition|
-					if !jumpCondition.nil? && !jumpCondition["when"].nil?
+					if jumpKey == "attributes"
+						# ignore this node. Not a jump of state
+					elsif !jumpCondition.nil? && !jumpCondition["when"].nil?
 						condition = jumpCondition["when"]
 						file.puts "\tif (false /* #{condition} */) {"
 						file.puts "\t\tSwitchTo(&#{$classname}::State#{jumpKey});"
