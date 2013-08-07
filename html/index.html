@@ -23,7 +23,8 @@ textarea {
 	--></style>
 	<script src="js/es5-shim.js"></script>
 	<script src="js/js-yaml.js"></script>
-	<script type="text/javascript" src="fsm.js"></script>
+	<script type="text/javascript" src="js/fsm.js"></script>
+	<script type="text/javascript" src="js/FileSaver.min.js"></script>
 	<script type="text/javascript"><!--
 
 /*
@@ -71,6 +72,23 @@ if (typeof btoa == 'undefined') {
 		exporter.restoreYAML(doc);
 		draw();
 	}
+	
+	// Extension of the file being saved
+	var gCurrentFileExt = "txt";
+	
+	function saveToDownloads() {
+		var text = document.getElementById('output');
+		var text_filename = document.getElementById('statemachineName');
+		saveAs(
+		  	new Blob(
+			  [text.value || text.placeholder]
+			, {type: "text/plain;charset=" + document.characterSet}
+			)
+		, (text_filename.value || text_filename.placeholder) + "." + gCurrentFileExt
+		);
+
+	}
+
 	-->
 	</script>
 	<!-- JavaScript plugins (requires jQuery) -->
@@ -100,9 +118,9 @@ if (typeof btoa == 'undefined') {
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Export as <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsYAML()">YAML</a></li>
-                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsSVG()">SVG</a></li>
-                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsLaTeX()">LaTeX</a></li>
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsYAML(); gCurrentFileExt='yaml'">YAML</a></li>
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsSVG(); gCurrentFileExt='svg'">SVG</a></li>
+                <li><a data-toggle="modal" href="#modalExporterWindow" onclick="saveAsLaTeX(); gCurrentFileExt='tex'">LaTeX</a></li>
                 <li><a href="javascript:saveAsPNG()">PNG</a></li>
               </ul>
             </li>
@@ -136,7 +154,7 @@ if (typeof btoa == 'undefined') {
 
     <div class="container">
 
-	<h1>State Machine</h1>
+	<h1><input type="text" id="statemachineName" placeholder="MyStateMachine"/></h1>
 	<canvas id="canvas" width="1280" height="1024">
 		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
 	</canvas>
@@ -202,6 +220,7 @@ if (typeof btoa == 'undefined') {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="saveToDownloads()">Save</button>
         </div>
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->

@@ -36,6 +36,25 @@ Troubleshooting
 * The initial state is set up to be the first key of the hash created from the YAML file. However the hash may not be sorted. 
 * Use Ruby 1.9.x. Previous version of Ruby does not preserve the order of Hash keys, but 1.9 does.
 
+Accompanying software licences
+-------------------------------
+
+### js-yaml ###
+* Copyright &copy; 2011, 2013 Vitaly Puzrin. MIT License
+* https://github.com/nodeca/js-yaml
+
+### FileSaver.js ###
+* Copyright &copy; 2011 [Eli Grey][1]. MIT License
+* https://github.com/eligrey/FileSaver.js
+
+### Finite State Machine Designer ###
+* Copyright &copy; 2010 Evan Wallace. MIT License
+* http://madebyevan.com/fsm/
+
+### Twitter Bootstrap 3 ###
+* Copyright 2012 Twitter, Inc under the Apache 2.0 license.
+* http://getbootstrap.com/
+
 
 License
 -------
