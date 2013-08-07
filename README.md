@@ -3,8 +3,13 @@ StateMachine
 
 * Simple StateMachine in C++ using member function pointers, with code auto-generation from YAML
 
-Usage
-------
+Web interface
+--------------
+* You can edit your state machine from the web interface, and export the code to C++ from there.
+* Try it out: http://endavid.com/StateMachine/
+
+Script Usage
+-------------
 * Create a YAML file with the description of your state machine. Eg.
 
 ```
@@ -55,6 +60,9 @@ Accompanying software licences
 * Copyright 2012 Twitter, Inc under the Apache 2.0 license.
 * http://getbootstrap.com/
 
+### Prettify ###
+* Copyright 2013 Google, Inc under the Apache 2.0 license.
+* https://code.google.com/p/google-code-prettify/
 
 License
 -------
