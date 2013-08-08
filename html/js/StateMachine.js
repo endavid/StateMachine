@@ -1,0 +1,224 @@
+/*
+ State Machine Graph functions
+ by David Gavilan
+ Licence: MIT http://opensource.org/licenses/MIT
+ 
+ Based on the work of Evan Wallace: Finite State Machine Designer (http://madebyevan.com/fsm/)
+*/
+
+// Include these files:
+// 	<script src="http://code.jquery.com/jquery.js"></script>
+//  <script type="text/javascript" src="js/dracula/raphael-min.js"></script>
+//  <script type="text/javascript" src="js/dracula/dracula_graffle.js"></script>
+//  <script type="text/javascript" src="js/dracula/dracula_graph.js"></script>
+//	<script src="js/js-yaml.js"></script>
+
+/**
+ * Main class
+ */
+function StateMachine(name) {
+	this.name = name;
+	this.graph = new Graph();
+	this.layoutMethod = "spring"
+	this.layouter = {};
+	this.renderer = {};
+	this.canvasOffset = {x: 100, y: 150};
+}
+
+// -----------------------------------------
+// State Machine functions
+// -----------------------------------------
+StateMachine.prototype.importYAML = function(yamlText)
+{    
+	var json = jsyaml.load(yamlText);
+	this.graph = new Graph();
+	//console.log(json);
+    // first add the nodes
+    for (var n in json) { /* loop through the nodes */
+    	//console.log(json[n]);
+    	this.graph.addNode(n);
+    }
+    // now create the links
+    for (var n in json) {
+	    for (var targetNode in json[n]) {
+		    if (targetNode === "attributes") continue; // not a State
+		    if (!(targetNode in json)) continue; // no such Node
+		    var style = { directed : true };
+		    if (json[targetNode] && json[targetNode][n]) { // double directed edge
+		    	if (targetNode > n) {
+		    		style.centerOffset = 10;
+		    	} else {
+			    	style.centerOffset = -10;
+		    	}
+		    }
+		    var label = null;
+		    if (json[n] && json[n][targetNode]) {
+		    	if (json[n][targetNode].when) {
+			    	style.label = json[n][targetNode].when;
+			    	style["label-style"] = { "font-size": 10, "font-family": "Helvetica" }
+		    	}
+		    }
+		    this.graph.addEdge(n, targetNode, style);
+	    }
+    }
+    
+    // clear the canvas
+    var canvas = document.getElementById('canvas');
+    canvas.innerHTML = "";
+
+    this.initLayout();
+    this.initRenderer();
+}
+
+StateMachine.prototype.initLayout = function()
+{
+	if (this.layoutMethod === "topological") {
+    	this.layouter = new Graph.Layout.Ordered(this.graph, topological_sort(this.graph));
+	} else { // "spring" or default
+	    /* layout the graph using the Spring layout implementation */
+    	this.layouter = new Graph.Layout.Spring(this.graph);
+	}
+}
+
+StateMachine.prototype.initRenderer = function()
+{
+    var width = $(document).width() - this.canvasOffset.x;
+    var height = $(document).height() - this.canvasOffset.y;
+    /* draw the graph using the RaphaelJS draw implementation */
+    this.renderer = new Graph.Renderer.Raphael('canvas', this.graph, width, height);
+    this.renderer.draw();
+    this.saveBackup();
+}
+
+StateMachine.prototype.redraw = function()
+{
+	this.layouter.layout();
+	this.renderer.draw();
+    this.saveBackup();
+}
+
+StateMachine.prototype.exportYAML = function()
+{
+	var yaml = '';
+	for (var n in this.graph.nodes) {
+		yaml += n + ":\n";
+		/*
+		yaml += "  attributes: {x: "+nodes[i].x + ", y: "+nodes[i].y;
+		if (nodes[i].color) {
+			yaml += ", color: \""+nodes[i].color+"\"";
+		}
+		yaml += "}\n";
+		*/
+		for (var j = 0; j < this.graph.edges.length; j++) {
+			if (this.graph.edges[j].source.id === n) {
+				yaml += "  " + this.graph.edges[j].target.id + ": ";
+				if (this.graph.edges[j].style.label) {
+					yaml += "{when: \""+this.graph.edges[j].style.label+"\"}";
+				}
+				yaml += "\n";
+			}
+		}
+		yaml += "\n"
+	}
+	return yaml;
+}
+
+StateMachine.prototype.exportSVG = function()
+{
+	var text = '<?xml version="1.0" standalone="no"?>\n';
+	text += '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n';
+	var canvas = document.getElementById('canvas');
+	text += canvas.innerHTML;
+	return text;
+}
+
+StateMachine.prototype.exportPNG = function()
+{
+	var canvas = document.getElementById('canvas');
+	var svg = canvas.children[0];
+	// include svs_todataurl.js !
+	svg.toDataURL("image/png", {
+		callback: function(data) {
+			window.open(data);
+		}
+	});
+}
+
+/// Stores YAML in localStorage http://www.w3schools.com/html/html5_webstorage.asp
+StateMachine.prototype.saveBackup = function()
+{
+  if (!localStorage || !JSON) {
+    return;
+  }
+  localStorage['fsm'] = this.exportYAML();
+}
+
+StateMachine.prototype.restoreBackup = function()
+{
+  if (!localStorage || !JSON) {
+    return;
+  }
+  try {
+  	this.importYAML(localStorage['fsm']);
+  } catch (e) {
+    localStorage['fsm'] = '';
+  }
+}
+
+// tests
+StateMachine.prototype.sample1 = function()
+{
+    var width = $(document).width() - 20;
+    var height = $(document).height() - 60;
+    
+    this.graph = new Graph();
+
+    /* add a simple node */
+    this.graph.addNode("strawberry");
+    this.graph.addNode("cherry");
+
+    /* add a node with a customized label */
+    this.graph.addNode("1", { label : "Tomato" });	
+    this.graph.addNode("id35", {
+        label : "meat\nand\ngreed" //,
+    });
+    st = { directed: true, label : "Label",
+            "label-style" : {
+                "font-size": 20
+            }
+        };
+    this.graph.addEdge("kiwi", "penguin", st);
+
+    /* connect nodes with edges */
+    this.graph.addEdge("strawberry", "cherry");
+    this.graph.addEdge("cherry", "apple");
+    this.graph.addEdge("cherry", "apple")
+    this.graph.addEdge("1", "id35");
+    this.graph.addEdge("penguin", "id35");
+    this.graph.addEdge("penguin", "apple");
+    this.graph.addEdge("kiwi", "id35");
+    /* a directed connection, using an arrow */
+    this.graph.addEdge("1", "cherry", { directed : true } );
+    /* customize the colors of that edge */
+    this.graph.addEdge("id35", "apple", { stroke : "#bfa" , fill : "#56f", label : "Meat-to-Apple" });    
+    /* add an unknown node implicitly by adding an edge */
+    this.graph.addEdge("strawberry", "apple");
+    this.graph.removeNode("1");
+    
+    // clear the canvas
+    var canvas = document.getElementById('canvas');
+    canvas.innerHTML = "";
+    
+    /* layout the graph using the Spring layout implementation */
+    this.layouter = new Graph.Layout.Spring(this.graph);
+    /* draw the graph using the RaphaelJS draw implementation */
+    this.renderer = new Graph.Renderer.Raphael('canvas', this.graph, width, height);
+    this.renderer.draw();
+}
+
+// ---------------------------- window
+window.onload = function() {
+  // create instance
+  window.stateMachine = new StateMachine("MyStateMachine");
+  window.stateMachine.restoreBackup();
+}
