@@ -216,9 +216,66 @@ StateMachine.prototype.sample1 = function()
     this.renderer.draw();
 }
 
-// ---------------------------- window
+// ----------------------------
+// Window stuff
+// ----------------------------
+
+window.crossBrowserKey = function crossBrowserKey(e) {
+  e = e || window.event;
+  return e.which || e.keyCode;
+}
+
+window.crossBrowserElementPos = function crossBrowserElementPos(e) {
+  e = e || window.event;
+  var obj = e.target || e.srcElement;
+  var x = 0, y = 0;
+  while(obj.offsetParent) {
+    x += obj.offsetLeft;
+    y += obj.offsetTop;
+    obj = obj.offsetParent;
+  }
+  return { 'x': x, 'y': y };
+}
+
+window.crossBrowserMousePos = function crossBrowserMousePos(e) {
+  e = e || window.event;
+  return {
+    'x': e.pageX || e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft,
+    'y': e.pageY || e.clientY + document.body.scrollTop + document.documentElement.scrollTop
+  };
+}
+
+window.crossBrowserRelativeMousePos = function crossBrowserRelativeMousePos(e) {
+  var element = window.crossBrowserElementPos(e);
+  var mouse = window.crossBrowserMousePos(e);
+  return {
+    'x': mouse.x - element.x,
+    'y': mouse.y - element.y
+  };
+}
+
 window.onload = function() {
   // create instance
   window.stateMachine = new StateMachine("MyStateMachine");
   window.stateMachine.restoreBackup();
+  
+  /*
+  var canvas = document.getElementById('canvas');
+
+  canvas.ondblclick = function(e) {
+    if (!window.stateMachine) return;
+    if (!window.stateMachine.renderer) return;
+    var mouse = window.crossBrowserRelativeMousePos(e);
+    var layoutPoint = window.stateMachine.renderer.pointToLayout(mouse);
+    //console.log(mouse);
+    var nodeNumber = 1;
+    while (window.stateMachine.graph.nodes["N"+nodeNumber]) nodeNumber++;
+    window.stateMachine.graph.addNode("N"+nodeNumber, {layoutPosX: layoutPoint.x, layoutPosY: layoutPoint.y});
+    window.stateMachine.renderer.draw();
+  };
+  */
+}
+
+window.canvasHasFocus = function canvasHasFocus() {
+  return (document.activeElement || document.body) == document.body;
 }

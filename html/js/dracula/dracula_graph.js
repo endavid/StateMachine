@@ -104,6 +104,15 @@ Graph.prototype = {
                 i--;
             }
         }
+    },
+    // Returns a node that includes the given point, or null if outside the nodes
+    selectNode: function(point) {
+	    for (var n in this.nodes) {
+		    if (this.nodes[n].containsPoint(point)) {
+			    return this.nodes[n];
+		    }
+	    }
+	    return null;
     }
 };
 
@@ -111,24 +120,38 @@ Graph.prototype = {
  * Node
  */
 Graph.Node = function(id, node){
-    node = node || {};
-    node.id = id;
-    node.edges = [];
-    node.hide = function() {
+	if (node) {
+		for (var attrib in node) {
+			this[attrib] = node[attrib];
+		}
+	}
+    this.id = id;
+    this.edges = [];
+    this.hide = function() {
         this.hidden = true;
         this.shape && this.shape.hide(); /* FIXME this is representation specific code and should be elsewhere */
         for(i in this.edges)
             (this.edges[i].source.id == id || this.edges[i].target == id) && this.edges[i].hide && this.edges[i].hide();
     };
-    node.show = function() {
+    this.show = function() {
         this.hidden = false;
         this.shape && this.shape.show();
         for(i in this.edges)
             (this.edges[i].source.id == id || this.edges[i].target == id) && this.edges[i].show && this.edges[i].show();
     };
-    return node;
+    this.radius = 40; // used for collision only atm
 };
 Graph.Node.prototype = {
+	// point inside the node?
+	containsPoint: function(point) {
+		if (!this.point) return false;
+		var dx = point.x - this.point[0];
+		var dy = point.y - this.point[1];
+		if ( dx * dx + dy * dy < this.radius * this.radius ) {
+			return true;
+		}
+		return false;
+	}
 };
 
 /*
@@ -147,6 +170,9 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
     this.radius = 40; /* max dimension of a node */
     this.graph = graph;
     this.mouse_in = false;
+    this.selectedNode = null;
+    this.selectedLabel = null;
+    this.tmpText = "";
 
     /* TODO default node rendering function */
     if(!this.graph.render) {
@@ -159,13 +185,43 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
      * Dragging
      */
     this.isDrag = false;
-    this.dragger = function (e) {
+    this.mouseDownOnNode = function (e) {
+    	if (this.type === "text") return; // can't drag text
         this.dx = e.clientX;
         this.dy = e.clientY;
         selfRef.isDrag = this;
         this.set && this.set.animate({"fill-opacity": .1}, 200) && this.set.toFront();
         e.preventDefault && e.preventDefault();
     };
+    this.dblclickOnNode = function (e) {
+	    //console.log(this[0]);
+	    this.tmpText = "";
+	    selfRef.selectedLabel = this[0].firstChild;
+	    selfRef.selectedLabel.textContent = "|"; // caret
+    }
+    this.acceptTextInput = function() {
+	    if (selfRef.selectedLabel) {
+		    if (selfRef.selectedNode) {
+		    	// valid text && not existing node?
+		    	var newId = selfRef.tmpText.replace(" ", "_");
+			    if (newId !== "" && !selfRef.graph.nodes[newId]) {
+			    	var oldId = selfRef.selectedNode.id;
+			    	selfRef.selectedNode.id = newId;
+			    	selfRef.selectedNode.shape[0][0].id = newId;
+			    	// change the reference
+				    selfRef.graph.nodes[newId] = selfRef.selectedNode;
+				    // remove old reference
+				    selfRef.graph.nodes[oldId] = null;
+				    delete selfRef.graph.nodes[oldId];
+			    }
+			    selfRef.selectedLabel.textContent = selfRef.selectedNode.id;
+		    } else {
+			    console.log("Modifying which label???");
+			}
+			selfRef.selectedLabel = null;
+			selfRef.tmpText = "";
+	    }
+    }
     
     var d = document.getElementById(element);
     d.onmousemove = function (e) {
@@ -189,8 +245,81 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
         }
     };
     d.onmouseup = function () {
-        selfRef.isDrag && selfRef.isDrag.set.animate({"fill-opacity": .6}, 500);
+        if (selfRef.isDrag) {
+        	//console.log(selfRef.isDrag);
+        	selfRef.isDrag.set.animate({"fill-opacity": .6}, 500);
+        	// copy the new node position back to the graph
+        	if (selfRef.isDrag.type !== "text") {
+	        	var point = {x: selfRef.isDrag.matrix.e, y: selfRef.isDrag.matrix.f};
+	        	var layoutPoint = selfRef.pointToLayout(point);
+	        	var nodeId = selfRef.isDrag.node.id;
+	        	if (selfRef.graph.nodes[nodeId]) {  	
+		        	selfRef.graph.nodes[nodeId].layoutPosX = layoutPoint.x;
+		        	selfRef.graph.nodes[nodeId].layoutPosY = layoutPoint.y;
+		        } else {
+			        console.log("Unexisting node! "+selfRef.isDrag.node.id);
+		        }
+	        }
+        }
         selfRef.isDrag = false;
+    };
+    d.onmousedown = function(e) {
+	    var mouse = window.crossBrowserRelativeMousePos(e);
+	    var selected = selfRef.graph.selectNode(mouse);
+	    if (selected) {
+	    	if (selected !== selfRef.selectedNode) {
+	    		if (selfRef.selectedNode && selfRef.selectedNode.color) {
+				    // return to its original color after deselection
+				    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
+				    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
+				}
+			    // remember node color
+			    selected.color = selected.shape[0][0].getAttribute("stroke");
+			    // set some fancy color
+			    selected.shape[0][0].setAttribute("stroke", "red");
+			    selected.shape[0][0].setAttribute("fill", "white");
+			    selfRef.selectedNode = selected;
+			}
+	    } else { // if not pressing Shift
+		    if (selfRef.selectedNode && selfRef.selectedNode.color) {
+			    // return to its original color after deselection
+			    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
+			    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
+		    }
+		    selfRef.selectedNode = null;
+	    }
+	    /*
+	    movingObject = false;
+	    originalClick = mouse;
+	
+	    if (selectedObject != null) {
+	      if (shift && selectedObject instanceof Node) {
+	        currentLink = new SelfLink(selectedObject, mouse);
+	      } else {
+	        movingObject = true;
+	        deltaMouseX = deltaMouseY = 0;
+	        if (selectedObject.setMouseStart) {
+	          selectedObject.setMouseStart(mouse.x, mouse.y);
+	        }
+	      }
+	      resetCaret();
+	    } else if (shift) {
+	      currentLink = new TemporaryLink(mouse, mouse);
+	    }
+	
+	    draw();	
+	    */
+    };
+    d.ondblclick = function(e) {
+	    var mouse = window.crossBrowserRelativeMousePos(e);
+	    var layoutPoint = selfRef.pointToLayout(mouse);
+	    //console.log(mouse);
+	    if (selfRef.selectedNode) return; // handled in dblclickOnNode
+	    // create a new node
+	    var nodeNumber = 1;
+	    while (selfRef.graph.nodes["N"+nodeNumber]) nodeNumber++;
+	    selfRef.graph.addNode("N"+nodeNumber, {layoutPosX: layoutPoint.x, layoutPosY: layoutPoint.y});
+	    selfRef.draw();
     };
     this.draw();
 };
@@ -200,6 +329,14 @@ Graph.Renderer.Raphael.prototype = {
             (point[0] - this.graph.layoutMinX) * this.factorX + this.radius,
             (point[1] - this.graph.layoutMinY) * this.factorY + this.radius
         ];
+    },
+    
+    // convert canvas absolute coordinates to layout relative coordinates
+    pointToLayout: function(point) {
+	    var p = {};
+	    p.x = this.graph.layoutMinX + (point.x - this.radius) / this.factorX;
+	    p.y = this.graph.layoutMinY + (point.y - this.radius) / this.factorY;
+	    return p;
     },
 
     rotate: function(point, length, angle) {
@@ -259,7 +396,8 @@ Graph.Renderer.Raphael.prototype = {
         shape.attr({"fill-opacity": .6});
         /* re-reference to the node an element belongs to, needed for dragging all elements of a node */
         shape.items.forEach(function(item){ item.set = shape; item.node.style.cursor = "move"; });
-        shape.mousedown(this.dragger);
+        shape.mousedown(this.mouseDownOnNode);
+        shape.dblclick(this.dblclickOnNode);
 
         var box = shape.getBBox();
         shape.translate(Math.round(point[0]-(box.x+box.width/2)),Math.round(point[1]-(box.y+box.height/2)))
@@ -525,3 +663,73 @@ if (!Array.prototype.forEach)
     }
   };
 }
+
+// --------------------
+// Key presses
+// --------------------
+document.onkeydown = function(e) {
+  var key = window.crossBrowserKey(e);
+
+  if (key == 16) {
+    window.shiftPressed = true;
+  } else if (!window.canvasHasFocus()) {
+    // don't read keystrokes when other things have focus
+    return true;
+  } else if (window.stateMachine && window.stateMachine.renderer) {
+	if (window.stateMachine.renderer.selectedLabel != null) {
+	    if (key == 8 && window.stateMachine.renderer.tmpText !== "") { // backspace key
+		    window.stateMachine.renderer.tmpText = window.stateMachine.renderer.tmpText.substr(0, window.stateMachine.renderer.tmpText.length - 1);
+		    window.stateMachine.renderer.selectedLabel.textContent = window.stateMachine.renderer.tmpText + "|"; // +caret
+		}
+    } else {
+    /*
+    if (key == 8 || key == 46) { // delete key
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i] == selectedObject) {
+          nodes.splice(i--, 1);
+        }
+      }
+      for (var i = 0; i < links.length; i++) {
+        if (links[i] == selectedObject || links[i].node == selectedObject || links[i].nodeA == selectedObject || links[i].nodeB == selectedObject) {
+          links.splice(i--, 1);
+        }
+      }
+      selectedObject = null;
+      draw();
+      */
+    }
+  
+  }
+
+  // backspace is a shortcut for the back button, but do NOT want to change pages
+  if (key == 8) return false;
+};
+
+document.onkeyup = function(e) {
+  var key = window.crossBrowserKey(e);
+
+  if (key == 16) {
+    window.shiftPressed = false;
+  }
+};
+
+document.onkeypress = function(e) {
+  // don't read keystrokes when other things have focus
+  var key = window.crossBrowserKey(e);
+  if (!window.canvasHasFocus()) {
+    // don't read keystrokes when other things have focus
+    return true;
+  } else if (key >= 0x20 && key <= 0x7E && !e.metaKey && !e.altKey && !e.ctrlKey 
+  	&& window.stateMachine && window.stateMachine.renderer
+  	&& window.stateMachine.renderer.selectedLabel != null) {
+    window.stateMachine.renderer.tmpText += String.fromCharCode(key);
+    window.stateMachine.renderer.selectedLabel.textContent = window.stateMachine.renderer.tmpText + "|"; // +caret
+    // don't let keys do their actions (like space scrolls down the page)
+    return false;
+  } else if (key == 13) { // accept input
+  	window.stateMachine.renderer.acceptTextInput();
+  } else if (key == 8) {
+    // backspace is a shortcut for the back button, but do NOT want to change pages
+    return false;
+  }
+};
