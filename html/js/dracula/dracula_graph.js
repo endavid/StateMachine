@@ -84,6 +84,16 @@ Graph.prototype = {
         t.edges.push(edge);
     },
     
+    containsEdge: function(source, target) {
+        for(var i = 0; i < this.edges.length; i++) {
+        	var edge = this.edges[i];
+        	if (edge.source === source && edge.target === target) {
+	        	return true;
+        	}
+        }
+        return false;
+    },
+    
     /* TODO to be implemented
      * Preserve a copy of the graph state (nodes, positions, ...)
      * @comment     a comment describing the state
@@ -273,12 +283,20 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 				    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
 				    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
 				}
-			    // remember node color
-			    selected.color = selected.shape[0][0].getAttribute("stroke");
-			    // set some fancy color
-			    selected.shape[0][0].setAttribute("stroke", "red");
-			    selected.shape[0][0].setAttribute("fill", "white");
-			    selfRef.selectedNode = selected;
+				if (window.shiftPressed) { // while pressing shift, create a directed edge
+					if (selfRef.selectedNode && !selfRef.graph.containsEdge(selfRef.selectedNode, selected)) {
+						selfRef.graph.addEdge(selfRef.selectedNode.id, selected.id);
+						selfRef.draw();
+					}
+					selfRef.selectedNode = null;
+				} else { // select the node
+				    // remember node color
+				    selected.color = selected.shape[0][0].getAttribute("stroke");
+				    // set some fancy color
+				    selected.shape[0][0].setAttribute("stroke", "red");
+				    selected.shape[0][0].setAttribute("fill", "white");
+				    selfRef.selectedNode = selected;
+				}
 			}
 	    } else { // if not pressing Shift
 		    if (selfRef.selectedNode && selfRef.selectedNode.color) {
