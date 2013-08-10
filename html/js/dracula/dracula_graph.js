@@ -285,7 +285,7 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 				}
 				if (window.shiftPressed) { // while pressing shift, create a directed edge
 					if (selfRef.selectedNode && !selfRef.graph.containsEdge(selfRef.selectedNode, selected)) {
-						selfRef.graph.addEdge(selfRef.selectedNode.id, selected.id);
+						selfRef.graph.addEdge(selfRef.selectedNode.id, selected.id, { directed : true });
 						selfRef.draw();
 					}
 					selfRef.selectedNode = null;
@@ -441,7 +441,39 @@ Graph.Renderer.Raphael.prototype = {
         edge.connection.fg.show();
         edge.connection.bg && edge.connection.bg.show();
         edge.connection.draw();
-    }
+    },
+    removeSelectedNode: function() {
+	    if (this.selectedNode) {
+	    	// first remove from DOM (SVG) (view)
+	    	var nodeId = this.selectedNode.id;
+	    	var removeList = [];
+	    	for (var i=0; i<this.r.canvas.childNodes.length; i++) {
+		    	var shape = this.r.canvas.childNodes[i];
+		    	// remove node and text shapes
+		    	if (shape === this.selectedNode.shape[0][0] || shape === this.selectedNode.shape[1][0]) {
+		    		removeList.push(shape);
+		    	}
+		    	// remove edges
+		    	for(var j = 0; j < this.graph.edges.length; j++) {
+		    		if (this.graph.edges[j].source.id == nodeId || this.graph.edges[j].target.id == nodeId) {
+						if (this.graph.edges[j].connection.fg[0] === shape 
+						|| (this.graph.edges[j].connection.label && this.graph.edges[j].connection.label[0] === shape)) {
+							removeList.push(shape);
+						}
+					}
+                } // for j
+            } // for i
+            for (var i=0;i<removeList.length;i++) {
+	            var shape = removeList[i];
+		    	while (shape.firstChild) shape.removeChild(shape.firstChild);
+		    	this.r.canvas.removeChild(shape);
+            }
+            removeList = [];
+            // remove from Graph (model)
+			this.graph.removeNode(nodeId);
+			this.selectedNode = null;
+        }
+    } // removeSelectedNode
 };
 Graph.Layout = {};
 Graph.Layout.Spring = function(graph) {
@@ -700,21 +732,9 @@ document.onkeydown = function(e) {
 		    window.stateMachine.renderer.selectedLabel.textContent = window.stateMachine.renderer.tmpText + "|"; // +caret
 		}
     } else {
-    /*
-    if (key == 8 || key == 46) { // delete key
-      for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i] == selectedObject) {
-          nodes.splice(i--, 1);
-        }
-      }
-      for (var i = 0; i < links.length; i++) {
-        if (links[i] == selectedObject || links[i].node == selectedObject || links[i].nodeA == selectedObject || links[i].nodeB == selectedObject) {
-          links.splice(i--, 1);
-        }
-      }
-      selectedObject = null;
-      draw();
-      */
+    	if (window.stateMachine.renderer.selectedNode) {
+    		window.stateMachine.renderer.removeSelectedNode();
+    	}
     }
   
   }
