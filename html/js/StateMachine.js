@@ -61,7 +61,12 @@ StateMachine.prototype.importYAML = function(yamlText)
 		    this.graph.addEdge(n, targetNode, style);
 	    }
     }
-    
+    if (Object.keys(this.graph.nodes).length == 0) {
+	    // create a dummy state machine when there's no data
+	    this.graph.addNode("Start");
+	    this.graph.addNode("Exit");
+	    this.graph.addEdge("Start", "Exit", { directed: true, label: "done", "label-style": {"font-size": 10, "font-family": "Helvetica"}});
+    }    
     // clear the canvas
     var canvas = document.getElementById('canvas');
     canvas.innerHTML = "";
@@ -160,7 +165,8 @@ StateMachine.prototype.saveBackup = function()
   if (!localStorage || !JSON) {
     return;
   }
-  localStorage['fsm'] = this.exportYAML();
+  localStorage['fsm-name'] = $("#statemachineName").val() || ""; // this.name
+  localStorage['fsm-yaml'] = this.exportYAML();
 }
 
 StateMachine.prototype.restoreBackup = function()
@@ -169,9 +175,13 @@ StateMachine.prototype.restoreBackup = function()
     return;
   }
   try {
-  	this.importYAML(localStorage['fsm']);
+  	this.name = localStorage['fsm-name'] || "";
+  	this.importYAML(localStorage['fsm-yaml']);
+  	$("#statemachineName").val(this.name);
   } catch (e) {
-    localStorage['fsm'] = '';
+    console.log(e);
+    localStorage['fsm-yaml'] = "";
+    localStorage['fsm-name'] = "";
   }
 }
 
