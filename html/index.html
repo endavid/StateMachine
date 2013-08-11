@@ -216,18 +216,21 @@ pre {
     <div class="container">
 
 	<div class="row">
-	  <div class="col-lg-6"><h1><input type="text" id="statemachineName" placeholder="MyStateMachine"/></h1></div>
-	  <div class="col-lg-6">
+	  <div class="col-lg-4"><h3><input type="text" id="statemachineName" placeholder="MyStateMachine"/></h3></div>
+	  <div class="col-lg-8">
 		<div class="form-group">
 			<div class="col-lg-3">
 			<button type="button" class="btn btn-primary" onclick="if (window.stateMachine) {window.stateMachine.redraw();}">Redraw</button>
 			</div>
 			<label for="layoutMethod" class="col-lg-2 control-label">Layout method</label>
-			<div class="col-lg-6">
+			<div class="col-lg-4">
 				<select id="layoutMethod" class="form-control" onchange="setLayoutMethod()">
 					<option value="spring">spring</option>
 					<option value="topological">topological</option>
 				</select>
+			</div>
+			<div class="col-lg-3">
+			<button type="button" class="btn btn-danger" onclick="if (window.stateMachine) {window.stateMachine.clear();}">Clear</button>
 			</div>
 		</div>
 		  
@@ -246,16 +249,12 @@ pre {
           <h4 class="modal-title">Help</h4>
         </div>
         <div class="modal-body">
-		<p>The big white box on top is the State Machine designer.&nbsp; Here's how to use it:</p>
+		<p>The whole space below is a big canvas to draw your state machine.</p>
 		<ul>
 			<li><b>Add a state:</b> double-click on the canvas</li>
-			<li><b>Add an arrow:</b> shift-drag on the canvas</li>
+			<li><b>Add an arrow:</b> select one state, and then shift-click on a target state</li>
 			<li><b>Move something:</b> drag it around</li>
 			<li><b>Delete something:</b> click it and press the delete key (not the backspace key)</li>
-		</ul><ul>
-			<li><b>Make accept state:</b> double-click on an existing state</li>
-			<li><b>Type numeric subscript:</b> put an underscore before the number (like "S_0")</li>
-			<li><b>Type greek letter:</b> put a backslash before it (like "\beta")</li>
 		</ul>
         </div>
         <div class="modal-footer">

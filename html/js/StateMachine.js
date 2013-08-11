@@ -97,6 +97,16 @@ StateMachine.prototype.redraw = function()
     this.saveBackup();
 }
 
+StateMachine.prototype.clear = function()
+{
+	this.graph = new Graph();
+    // clear the canvas
+    var canvas = document.getElementById('canvas');
+    canvas.innerHTML = "";
+    this.initLayout();
+    this.initRenderer();		
+}
+
 StateMachine.prototype.exportYAML = function()
 {
 	var yaml = '';
