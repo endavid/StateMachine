@@ -181,6 +181,7 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
     this.graph = graph;
     this.mouse_in = false;
     this.selectedNode = null;
+    this.selectedEdge = null;
     this.selectedLabel = null;
     this.tmpText = "";
 
@@ -214,7 +215,23 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 	    } else {
 		    console.log("No such node! "+nodeId);
 	    }
-    }
+    };
+    this.dblclickOnEdge = function(e) {
+	    selfRef.tmpText = "";
+	    var edge = selfRef.findEdgeFromShape(this);
+	    //console.log(edge);
+	    if (edge) {
+		    selfRef.selectedEdge = edge;
+		    if (!edge.connection.label) {
+		    	// edge.style should contain at least directed = true
+				edge.style.label = "-";
+				edge.style["label-style"] = { "font-family": "Helvetica", "font-size": 10};
+				edge.connection.draw(); // this should create the label
+		    }
+		    selfRef.selectedLabel = edge.connection.label[0].firstChild;
+			selfRef.selectedLabel.textContent = "|"; // caret
+	    }
+    };
     this.acceptTextInput = function() {
 	    if (selfRef.selectedLabel) {
 		    if (selfRef.selectedNode) {
@@ -231,13 +248,29 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 				    delete selfRef.graph.nodes[oldId];
 			    }
 			    selfRef.selectedLabel.textContent = selfRef.selectedNode.id;
+			} else if (selfRef.selectedEdge) {
+				if (!selfRef.selectedEdge.style) {
+					selfRef.selectedEdge.style = {};
+				}
+				selfRef.selectedEdge.style.label = selfRef.tmpText;
+				selfRef.selectedLabel.textContent = selfRef.tmpText;
+				// deselect edge
+				selfRef.selectedEdge = null
 		    } else {
 			    console.log("Modifying which label???");
 			}
 			selfRef.selectedLabel = null;
 			selfRef.tmpText = "";
 	    }
-    }
+    };
+    this.cancelTextInput = function() {
+	    if (selfRef.selectedNode) {
+		    selfRef.tmpText = selfRef.selectedNode.id;
+	    } else if (selfRef.selectedEdge) {
+		    selfRef.tmpText = (selfRef.selectedEdge.style?selfRef.selectedEdge.style.label:"");
+	    }
+	    this.acceptTextInput();
+    };
     
     var d = document.getElementById(element);
     d.onmousemove = function (e) {
@@ -279,6 +312,7 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 	        }
         }
         selfRef.isDrag = false;
+        //selfRef.cancelTextInput();
     };
     d.onmousedown = function(e) {
         if (selfRef.isDrag) {
@@ -310,6 +344,8 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 					}		        	
 		        }
 	        }
+	    } else if (selfRef.selectedLabel) {
+	    	selfRef.cancelTextInput();
         } else { // no object selected
 		    if (selfRef.selectedNode && selfRef.selectedNode.color) {
 			    // return to its original color after deselection
@@ -324,6 +360,7 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 	    var layoutPoint = selfRef.pointToLayout(mouse);
 	    //console.log(mouse);
 	    if (selfRef.selectedNode) return; // handled in dblclickOnNode
+	    if (selfRef.selectedEdge) return; // handled in dblclickOnEdge
 	    // create a new node
 	    var nodeNumber = 1;
 	    while (selfRef.graph.nodes["N"+nodeNumber]) nodeNumber++;
@@ -426,6 +463,7 @@ Graph.Renderer.Raphael.prototype = {
         if(!edge.connection) {
             edge.style && edge.style.callback && edge.style.callback(edge); // TODO move this somewhere else
             edge.connection = this.r.connection(edge.source.shape, edge.target.shape, edge.style);
+            edge.connection.fg.dblclick(this.dblclickOnEdge);
             return;
         }
         //FIXME showing doesn't work well
@@ -464,7 +502,16 @@ Graph.Renderer.Raphael.prototype = {
 			this.graph.removeNode(nodeId);
 			this.selectedNode = null;
         }
-    } // removeSelectedNode
+    }, // removeSelectedNode
+    findEdgeFromShape: function(shape) {
+	    for (var i=0; i<this.graph.edges.length; i++) {
+		    var edge = this.graph.edges[i];
+		    if (edge.connection.fg === shape || edge.connection.label === shape) {
+			    return edge;
+		    }
+	    }
+	    return null;
+    },
 };
 Graph.Layout = {};
 Graph.Layout.Spring = function(graph) {
