@@ -204,10 +204,16 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
         e.preventDefault && e.preventDefault();
     };
     this.dblclickOnNode = function (e) {
-	    //console.log(this[0]);
-	    this.tmpText = "";
-	    selfRef.selectedLabel = this[0].firstChild;
-	    selfRef.selectedLabel.textContent = "|"; // caret
+	    //console.log(this);
+	    selfRef.tmpText = "";
+	    var nodeId = this[0].firstChild.textContent;
+	    if (selfRef.graph.nodes[nodeId]) {
+		    selfRef.selectedLabel = this[0].firstChild;
+			selfRef.selectedLabel.textContent = "|"; // caret
+		    selfRef.selectedNode = selfRef.graph.nodes[nodeId];
+	    } else {
+		    console.log("No such node! "+nodeId);
+	    }
     }
     this.acceptTextInput = function() {
 	    if (selfRef.selectedLabel) {
@@ -263,70 +269,55 @@ Graph.Renderer.Raphael = function(element, graph, width, height) {
 	        	var point = {x: selfRef.isDrag.matrix.e, y: selfRef.isDrag.matrix.f};
 	        	var layoutPoint = selfRef.pointToLayout(point);
 	        	var nodeId = selfRef.isDrag.node.id;
-	        	if (selfRef.graph.nodes[nodeId]) {  	
-		        	selfRef.graph.nodes[nodeId].layoutPosX = layoutPoint.x;
-		        	selfRef.graph.nodes[nodeId].layoutPosY = layoutPoint.y;
+	        	var selected = selfRef.graph.nodes[nodeId];
+	        	if (selected) {
+		        	selected.layoutPosX = layoutPoint.x;
+		        	selected.layoutPosY = layoutPoint.y;		        	
 		        } else {
-			        console.log("Unexisting node! "+selfRef.isDrag.node.id);
+			        console.log("Unexisting node! "+nodeId);
 		        }
 	        }
         }
         selfRef.isDrag = false;
     };
     d.onmousedown = function(e) {
-	    var mouse = window.crossBrowserRelativeMousePos(e);
-	    var selected = selfRef.graph.selectNode(mouse);
-	    if (selected) {
-	    	if (selected !== selfRef.selectedNode) {
-	    		if (selfRef.selectedNode && selfRef.selectedNode.color) {
-				    // return to its original color after deselection
-				    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
-				    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
-				}
-				if (window.shiftPressed) { // while pressing shift, create a directed edge
-					if (selfRef.selectedNode && !selfRef.graph.containsEdge(selfRef.selectedNode, selected)) {
-						selfRef.graph.addEdge(selfRef.selectedNode.id, selected.id, { directed : true });
-						selfRef.draw();
-					}
-					selfRef.selectedNode = null;
-				} else { // select the node
-				    // remember node color
-				    selected.color = selected.shape[0][0].getAttribute("stroke");
-				    // set some fancy color
-				    selected.shape[0][0].setAttribute("stroke", "red");
-				    selected.shape[0][0].setAttribute("fill", "white");
-				    selfRef.selectedNode = selected;
-				}
-			}
-	    } else { // if not pressing Shift
+        if (selfRef.isDrag) {
+        	//console.log(selfRef.isDrag);
+        	if (selfRef.isDrag.type !== "text") {
+	        	var nodeId = selfRef.isDrag.node.id;
+	        	var selected = selfRef.graph.nodes[nodeId];
+	        	if (selected) {		        	
+		        	if (selected !== selfRef.selectedNode) {
+			    		if (selfRef.selectedNode && selfRef.selectedNode.color) {
+						    // return to its original color after deselection
+						    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
+						    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
+						}
+						if (window.shiftPressed) { // while pressing shift, create a directed edge
+							if (selfRef.selectedNode && !selfRef.graph.containsEdge(selfRef.selectedNode, selected)) {
+								selfRef.graph.addEdge(selfRef.selectedNode.id, selected.id, { directed : true });
+								selfRef.draw();
+							}
+							selfRef.selectedNode = null;
+						} else { // select the node
+						    // remember node color
+						    selected.color = selected.shape[0][0].getAttribute("stroke");
+						    // set some fancy color
+						    selected.shape[0][0].setAttribute("stroke", "red");
+						    selected.shape[0][0].setAttribute("fill", "white");
+						    selfRef.selectedNode = selected;
+						}
+					}		        	
+		        }
+	        }
+        } else { // no object selected
 		    if (selfRef.selectedNode && selfRef.selectedNode.color) {
 			    // return to its original color after deselection
 			    selfRef.selectedNode.shape[0][0].setAttribute("stroke", selfRef.selectedNode.color);
 			    selfRef.selectedNode.shape[0][0].setAttribute("fill", selfRef.selectedNode.color);
 		    }
-		    selfRef.selectedNode = null;
-	    }
-	    /*
-	    movingObject = false;
-	    originalClick = mouse;
-	
-	    if (selectedObject != null) {
-	      if (shift && selectedObject instanceof Node) {
-	        currentLink = new SelfLink(selectedObject, mouse);
-	      } else {
-	        movingObject = true;
-	        deltaMouseX = deltaMouseY = 0;
-	        if (selectedObject.setMouseStart) {
-	          selectedObject.setMouseStart(mouse.x, mouse.y);
-	        }
-	      }
-	      resetCaret();
-	    } else if (shift) {
-	      currentLink = new TemporaryLink(mouse, mouse);
-	    }
-	
-	    draw();	
-	    */
+		    selfRef.selectedNode = null;	        
+        }
     };
     d.ondblclick = function(e) {
 	    var mouse = window.crossBrowserRelativeMousePos(e);
