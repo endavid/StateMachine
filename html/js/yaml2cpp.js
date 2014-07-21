@@ -14,7 +14,7 @@ function StateMachineCppExporter(json) {
 		output += "#ifndef "+headerGuard+"\n";
 		output += "#define "+headerGuard+"\n";
 		output += "#include \"core/StateMachine.h\"\n\n";
-		output += "class "+stateMachineName+" : public vd::core::StateMachine<"+stateMachineName+"> {\n";
+		output += "class "+stateMachineName+" : public vd::core::StateMachine&lt;"+stateMachineName+"&gt; {\n";
 		output += "public:\n"
 		output += "\t"+stateMachineName+"();\n\n";
 		output += "protected:\n";
@@ -22,7 +22,7 @@ function StateMachineCppExporter(json) {
 		output += "private:\n";
 		// loop through the states
 		for (var n in this.stateMachine) { /* loop through the nodes */
-			output += "\t State"+n+"(const float time_ms);\n";
+			output += "\t void State"+n+"(const float time_ms);\n";
 		}
 		output += "};\n"
 		output += "#endif"
@@ -53,7 +53,7 @@ function StateMachineCppExporter(json) {
 			    var jumpTo = "\tSwitchTo(&"+stateMachineName+"::State"+targetNode+");\n";
 			    // condition ("when" exists?)
 			    if (json[n][targetNode] && json[n][targetNode].when) {
-				    output += "\tif (false /* "+json[n][targetNode].when+" */ {\n";
+				    output += "\tif (false /* "+json[n][targetNode].when+" */) {\n";
 				    output += "\t"+jumpTo;
 				    output += "\t}\n";
 			    } else {
