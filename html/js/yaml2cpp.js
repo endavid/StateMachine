@@ -22,6 +22,7 @@ function StateMachineCppExporter(json) {
 		output += "private:\n";
 		// loop through the states
 		for (var n in this.stateMachine) { /* loop through the nodes */
+			if (n === ".") continue; /// special state for common updates
 			output += "\t void State"+n+"(const float time_ms);\n";
 		}
 		output += "};\n"
@@ -39,29 +40,39 @@ function StateMachineCppExporter(json) {
 		output += ": Super(&"+stateMachineName+"::State"+initState+")\n";
 		output += "{\n\n}\n\n";
 		output += "void "+stateMachineName+"::CommonUpdate(const float time_ms)\n";
-		output += "{\n\n}\n\n";
+		output += "{\n";
+		if (this.stateMachine['.']) { // special node to change state from anywhere
+			output += this.generateLinks(stateMachineName, this.stateMachine['.']);
+		}
+		output += "}\n\n";
 		output += "// ---------------------------------------------------------\n"
 		output += "// States\n"
 		output += "// ---------------------------------------------------------\n"
 		output += "#pragma mark States\n\n"
 		// loop through the states
 		for (var n in this.stateMachine) { /* loop through the nodes */
+			if (n === ".") continue; /// special state for common updates
 			output += "void "+stateMachineName+"::State"+n+"(const float time_ms)\n{\n";
-			// loop through the links
-			for (var targetNode in json[n]) {
-			    if (targetNode === "attributes") continue; // not a State
-			    var jumpTo = "\tSwitchTo(&"+stateMachineName+"::State"+targetNode+");\n";
-			    // condition ("when" exists?)
-			    if (json[n][targetNode] && json[n][targetNode].when) {
-				    output += "\tif (false /* "+json[n][targetNode].when+" */) {\n";
-				    output += "\t"+jumpTo;
-				    output += "\t}\n";
-			    } else {
-				    output += jumpTo;
-			    }
-		    }
+			output += this.generateLinks(stateMachineName, this.stateMachine[n]);
 			output += "}\n";
 		}
+		return output;
+	};
+	// loops through the links
+	this.generateLinks = function(stateMachineName, node) {
+		output = "";
+		for (var targetNode in node) {
+		    if (targetNode === "attributes") continue; // not a State
+		    var jumpTo = "\tSwitchTo(&"+stateMachineName+"::State"+targetNode+");\n";
+		    // condition ("when" exists?)
+		    if (node[targetNode] && node[targetNode].when) {
+			    output += "\tif (false /* "+node[targetNode].when+" */) {\n";
+			    output += "\t"+jumpTo;
+			    output += "\t}\n";
+		    } else {
+			    output += jumpTo;
+		    }
+	    }
 		return output;
 	}
 }

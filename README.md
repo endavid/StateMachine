@@ -36,6 +36,26 @@ End:
 * Check the samples folder for some examples.
 * Once you get the skeleton, you have to directly write the logic inside the .cpp file, of course.
 
+Common update
+-------------
+* The web interface supports a special type of node labelled "." that applies to the CommonUpdate. 
+* In this manner, you can change state from the common update and avoid typing unnecessary state changes and having hundreds of lines from everywhere to everywhere in the diagram.
+* In the example below, we stay in Init state until A or B is pressed. Once in A or B, we can switch to B or A again.
+
+```
+Init:
+
+A:
+
+B:
+
+.:
+ A: {when: "A is selected"}
+ B: {when: "B is selected"}
+```
+
+
+
 Troubleshooting
 ---------------
 * The initial state is set up to be the first key of the hash created from the YAML file. However the hash may not be sorted. 
