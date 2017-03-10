@@ -2,7 +2,7 @@
  State Machine Graph functions
  by David Gavilan
  Licence: MIT http://opensource.org/licenses/MIT
- 
+
  Based on the work of Evan Wallace: Finite State Machine Designer (http://madebyevan.com/fsm/)
 */
 
@@ -29,7 +29,7 @@ function StateMachine(name) {
 // State Machine functions
 // -----------------------------------------
 StateMachine.prototype.importYAML = function(yamlText)
-{    
+{
 	var json = jsyaml.load(yamlText);
 	this.graph = new Graph();
 	//console.log(json);
@@ -66,7 +66,7 @@ StateMachine.prototype.importYAML = function(yamlText)
 	    this.graph.addNode("Start");
 	    this.graph.addNode("Exit");
 	    this.graph.addEdge("Start", "Exit", { directed: true, label: "done", "label-style": {"font-size": 10, "font-family": "Helvetica"}});
-    }    
+    }
     // clear the canvas
     var canvas = document.getElementById('canvas');
     canvas.innerHTML = "";
@@ -109,7 +109,7 @@ StateMachine.prototype.clear = function()
     var canvas = document.getElementById('canvas');
     canvas.innerHTML = "";
     this.initLayout();
-    this.initRenderer();		
+    this.initRenderer();
 }
 
 StateMachine.prototype.exportYAML = function()
@@ -176,7 +176,7 @@ StateMachine.prototype.restoreBackup = function()
   }
   try {
   	this.name = localStorage['fsm-name'] || "";
-  	this.importYAML(localStorage['fsm-yaml']);
+  	this.importYAML(localStorage['fsm-yaml'] || "");
   	$("#statemachineName").val(this.name);
   } catch (e) {
     console.log(e);
@@ -190,7 +190,7 @@ StateMachine.prototype.sample1 = function()
 {
     var width = $(document).width() - 20;
     var height = $(document).height() - 60;
-    
+
     this.graph = new Graph();
 
     /* add a simple node */
@@ -198,7 +198,7 @@ StateMachine.prototype.sample1 = function()
     this.graph.addNode("cherry");
 
     /* add a node with a customized label */
-    this.graph.addNode("1", { label : "Tomato" });	
+    this.graph.addNode("1", { label : "Tomato" });
     this.graph.addNode("id35", {
         label : "meat\nand\ngreed" //,
     });
@@ -220,15 +220,15 @@ StateMachine.prototype.sample1 = function()
     /* a directed connection, using an arrow */
     this.graph.addEdge("1", "cherry", { directed : true } );
     /* customize the colors of that edge */
-    this.graph.addEdge("id35", "apple", { stroke : "#bfa" , fill : "#56f", label : "Meat-to-Apple" });    
+    this.graph.addEdge("id35", "apple", { stroke : "#bfa" , fill : "#56f", label : "Meat-to-Apple" });
     /* add an unknown node implicitly by adding an edge */
     this.graph.addEdge("strawberry", "apple");
     this.graph.removeNode("1");
-    
+
     // clear the canvas
     var canvas = document.getElementById('canvas');
     canvas.innerHTML = "";
-    
+
     /* layout the graph using the Spring layout implementation */
     this.layouter = new Graph.Layout.Spring(this.graph);
     /* draw the graph using the RaphaelJS draw implementation */
@@ -278,7 +278,7 @@ window.onload = function() {
   // create instance
   window.stateMachine = new StateMachine("MyStateMachine");
   window.stateMachine.restoreBackup();
-  
+
   /*
   var canvas = document.getElementById('canvas');
 
