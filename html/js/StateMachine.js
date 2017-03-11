@@ -45,14 +45,6 @@ StateMachine.prototype.importYAML = function(yamlText)
     if (targetNode === "attributes") continue; // not a State
     if (!(targetNode in json)) continue; // no such Node
     var style = { directed : true };
-    if (json[targetNode] && json[targetNode][n]) { // double directed edge
-      if (targetNode > n) {
-        style.centerOffset = 10;
-      } else {
-        style.centerOffset = -10;
-      }
-    }
-    var label = null;
     if (json[n] && json[n][targetNode]) {
       if (json[n][targetNode].when) {
         style.label = json[n][targetNode].when;
