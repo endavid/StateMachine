@@ -117,13 +117,6 @@ pre {
 
   }
 
-  function setLayoutMethod() {
-    if (!window.stateMachine) return;
-    var select = document.getElementById('layoutMethod');
-    window.stateMachine.layoutMethod = select.value;
-    window.stateMachine.restoreBackup();
-  }
-
   function adjustCanvasFontSize(size) {
     window.stateMachine.fontSize = size;
   }
@@ -220,13 +213,6 @@ pre {
       <div class="col-lg-3">
       <button type="button" class="btn btn-primary" onclick="if (window.stateMachine) {window.stateMachine.redraw();}">Redraw</button>
       </div>
-      <label for="layoutMethod" class="col-lg-2 control-label">Layout method</label>
-      <div class="col-lg-4">
-        <select id="layoutMethod" class="form-control" onchange="setLayoutMethod()">
-          <option value="spring">spring</option>
-          <option value="topological">topological</option>
-        </select>
-      </div>
       <div class="col-lg-3">
       <button type="button" class="btn btn-danger" onclick="if (window.stateMachine) {window.stateMachine.clear();}">Clear</button>
       </div>
@@ -270,7 +256,7 @@ pre {
           <h4 class="modal-title">About</h4>
         </div>
         <div class="modal-body">
-          <p>State Machine Designer by <a href="http://endavid.com">David Gavilan</a> (c) 2013 (MIT License)
+          <p>State Machine Designer by <a href="http://endavid.com">David Gavilan</a> (c) 2013-2017 (MIT License)
           </p>
           <p>Based on the FSM Designer by <a href="http://madebyevan.com/">Evan Wallace</a>, all the code has been replaced to use <a href="http://www.graphdracula.net/">Dracula Graph Library</a> and <a href="http://getbootstrap.com/">Twitter Bootstrap 3</a>.
         </div>

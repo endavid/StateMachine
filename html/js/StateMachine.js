@@ -42,31 +42,24 @@ StateMachine.prototype.importYAML = function(yamlText)
   // now create the links
   for (n in json) {
     for (var targetNode in json[n]) {
-    if (targetNode === "attributes") continue; // not a State
-    if (!(targetNode in json)) continue; // no such Node
-    var style = { directed : true };
-    if (json[targetNode] && json[targetNode][n]) { // double directed edge
-      if (targetNode > n) {
-        style.centerOffset = 10;
-      } else {
-        style.centerOffset = -10;
+      if (targetNode === "attributes") continue; // not a State
+      if (!(targetNode in json)) continue; // no such Node
+      var edgeData = { style: { directed : true } };
+      if (json[n] && json[n][targetNode]) {
+        if (json[n][targetNode].when) {
+          edgeData.style.label = json[n][targetNode].when;
+          edgeData.style["font-size"] = 10;
+          edgeData.style["font-family"] = "Helvetica";
+        }
       }
-    }
-    var label = null;
-    if (json[n] && json[n][targetNode]) {
-      if (json[n][targetNode].when) {
-        style.label = json[n][targetNode].when;
-        style["label-style"] = { "font-size": 10, "font-family": "Helvetica" };
-      }
-    }
-    this.graph.addEdge(n, targetNode, style);
+      this.graph.addEdge(n, targetNode, edgeData);
     }
   }
   if (Object.keys(this.graph.nodes).length === 0) {
     // create a dummy state machine when there's no data
     this.graph.addNode("Start");
     this.graph.addNode("Exit");
-    this.graph.addEdge("Start", "Exit", { directed: true, label: "done", "label-style": {"font-size": 10, "font-family": "Helvetica"}});
+    this.graph.addEdge("Start", "Exit", { style: {directed: true, label: "done", "font-size": 10, "font-family": "Helvetica"}});
   }
   // clear the canvas
   var canvas = document.getElementById('canvas');
@@ -78,12 +71,9 @@ StateMachine.prototype.importYAML = function(yamlText)
 
 StateMachine.prototype.initLayout = function()
 {
-  if (this.layoutMethod === "topological") {
-    this.layouter = new Dracula.Layout.Ordered(this.graph, topological_sort(this.graph));
-  } else { // "spring" or default
-    /* layout the graph using the Spring layout implementation */
-    this.layouter = new Dracula.Layout.Spring(this.graph);
-  }
+  // layout the graph using the Spring layout implementation
+  // The other layouts are broken.
+  this.layouter = new Dracula.Layout.Spring(this.graph);
 };
 
 StateMachine.prototype.initRenderer = function()

@@ -44,7 +44,7 @@
     g.addNode("Banana", {label: "koko", render: squareNode});
     g.addNode("Apple", {label: "Apple", render: defaultNode});
     g.addEdge('Banana', 'Tomato', { style: {label: "kaka", stroke: "#bfa"}, label: "ignored"});
-    g.addEdge('Mushroom', 'Tomato', { style: {label: "toka", fill: "#bfa"}});
+    g.addEdge('Mushroom', 'Tomato', { style: {directed: true, label: "toka", fill: "#bfa"}});
     g.addEdge('Apple', 'Tomato');
     g.addEdge('Apple', 'Mushroom');
     g.addEdge('Banana', 'Mushroom');
