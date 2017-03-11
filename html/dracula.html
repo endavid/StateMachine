@@ -1,0 +1,59 @@
+<html>
+<head>
+  <title>Dracula test</title>
+  <script type="text/javascript" src="js/ext/raphael.min.js"></script>
+  <script type="text/javascript" src="js/ext/dracula.min.js"></script>
+</head>
+<body>
+  <div id="canvas" style="height: 400px; width: 600px;"></div>
+<script type="text/javascript">
+  function defaultNode(r, n) { // copy-pasted from dracula.min.js, drawNode
+    var color = Raphael.getColor();
+    var set = r.set();
+    set.push(r.ellipse(0, 0, 30, 20).attr({
+                              stroke: color,
+                              "stroke-width": 2,
+                              fill: color,
+                              "fill-opacity": 0
+                          }));
+    set.push(r.text(0, 30, n.label || n.id));
+    set.translate(n.point[0], n.point[1]);
+    return set;
+  }
+  function squareNode(r, n) {
+    // the Raphael set is obligatory, containing all you want to display
+    var color = Raphael.getColor();
+    var set = r.set();
+    set.push(r.rect(-32, -32, 64, 64).attr({
+                              stroke: color,
+                              "stroke-width": 2,
+                              fill: color,
+                              "fill-opacity": 0
+                              // radius not supported! makes dracula crash
+                              // r: "9px"
+                          }));
+    set.push(
+        r.text(0, 0, n.label || n.id)
+        .attr({"font-size":"14px"}));
+    set.translate(n.point[0], n.point[1]);
+    return set;
+  }
+
+  window.addEventListener('load', function() {
+    const g = new Dracula.Graph();
+    g.addNode("Banana", {label: "koko", render: squareNode});
+    g.addNode("Apple", {label: "Apple", render: defaultNode});
+    g.addEdge('Banana', 'Tomato', { style: {label: "kaka", stroke: "#bfa"}, label: "ignored"});
+    g.addEdge('Mushroom', 'Tomato', { style: {label: "toka", fill: "#bfa"}});
+    g.addEdge('Apple', 'Tomato');
+    g.addEdge('Apple', 'Mushroom');
+    g.addEdge('Banana', 'Mushroom');
+    const layouter = new Dracula.Layout.Spring(g);
+    layouter.layout();
+    const renderer = new Dracula.Renderer.Raphael('#canvas', g);
+    renderer.draw();
+  }, false )
+</script>
+
+</body>
+</html>

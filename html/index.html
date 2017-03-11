@@ -1,141 +1,139 @@
 <!doctype html>
 <html><head>
-	<title>Finite State Machine Designer</title>
-	<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-	<link href="css/prettify.css" type="text/css" rel="stylesheet" />
-	<style type="text/css"><!--
+  <title>Finite State Machine Designer</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="css/prettify.css" type="text/css" rel="stylesheet" />
+  <style type="text/css"><!--
 body {
-	background: #DFDFDF;
-	padding-top: 60px;
+  background: #DFDFDF;
+  padding-top: 60px;
 }
 textarea {
-	width: 90%;
-	height: 400px;
-	margin: auto;
+  width: 90%;
+  height: 400px;
+  margin: auto;
 }
 pre {
-	font-size: x-small;
+  font-size: x-small;
 }
-	--></style>
-	<script src="js/es5-shim.js"></script>
-	<script src="js/js-yaml.js"></script>
-	<script type="text/javascript" src="js/StateMachine.js"></script>
-	<script type="text/javascript" src="js/dracula/raphael-min.js"></script>
-    <script type="text/javascript" src="js/dracula/dracula_graffle.js"></script>
-    <script type="text/javascript" src="js/dracula/dracula_graph.js"></script>
-    <script type="text/javascript" src="js/dracula/dracula_algorithms.js"></script>    
-	<script type="text/javascript" src="js/FileSaver.min.js"></script>
-	<script type="text/javascript" src="js/yaml2cpp.js"></script>
-	<!-- for the PNG export 
-	<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/rgbcolor.js"></script> 
-	<script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/canvg.js"></script> 
-	-->
-	<script type="text/javascript" src="js/rgbcolor.js"></script> 
-	<script type="text/javascript" src="js/canvg.js"></script> 
-	<script type="text/javascript" src="js/svg_todataurl.js"></script>
-	<script type="text/javascript"><!--
-	// Extension of the file being saved
-	var gCurrentFileExt = "txt";
-	
-	function importFSMFromYAML()
-	{
-		var text = document.getElementById('sourceinputarea').value;
-		var text_filename = document.getElementById('statemachineName');
-		var stateMachineName = (text_filename.value || text_filename.placeholder);
-		
-		window.stateMachine = new StateMachine(stateMachineName);
-		window.stateMachine.importYAML(text);
-		//window.stateMachine.sample1();
-	}
-	
-	function saveAsYAML()
-	{
-		if (!window.stateMachine) return;
-		var text = window.stateMachine.exportYAML();
-		var element = document.getElementById('output');
-		element.value = text;
-	}
-	
-	function saveAsSVG()
-	{
-		if (!window.stateMachine) return;
-		var text = window.stateMachine.exportSVG();
-		var element = document.getElementById('output');
-		element.value = text;		
-	}
-	
-	function saveAsPNG()
-	{
-		if (!window.stateMachine) return;
-		var text = window.stateMachine.exportPNG();
-	}
-		
-	function saveToDownloads() {
-		var text = document.getElementById('output');
-		var text_filename = document.getElementById('statemachineName');
-		saveAs(
-		  	new Blob(
-			  [text.value || text.placeholder]
-			, {type: "text/plain;charset=" + document.characterSet}
-			)
-		, (text_filename.value || text_filename.placeholder) + "." + gCurrentFileExt
-		);
+  --></style>
+  <script src="js/es5-shim.js"></script>
+  <script src="js/js-yaml.js"></script>
+  <script type="text/javascript" src="js/ext/raphael.min.js"></script>
+  <script type="text/javascript" src="js/ext/dracula.min.js"></script>
+  <script type="text/javascript" src="js/StateMachine.js"></script>
+  <script type="text/javascript" src="js/FileSaver.min.js"></script>
+  <script type="text/javascript" src="js/yaml2cpp.js"></script>
+  <!-- for the PNG export
+  <script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/rgbcolor.js"></script>
+  <script type="text/javascript" src="http://canvg.googlecode.com/svn/trunk/canvg.js"></script>
+  -->
+  <script type="text/javascript" src="js/rgbcolor.js"></script>
+  <script type="text/javascript" src="js/canvg.js"></script>
+  <script type="text/javascript" src="js/svg_todataurl.js"></script>
+  <script type="text/javascript"><!--
+  // Extension of the file being saved
+  var gCurrentFileExt = "txt";
 
-	}
-	
-	function generateCodeCpp() {
-		if (!window.stateMachine) return;
-		var text_filename = document.getElementById('statemachineName');
-		var stateMachineName = (text_filename.value || text_filename.placeholder);
-		var yamlData = window.stateMachine.exportYAML();
-		var json = jsyaml.load(yamlData);
-		var exporterCpp = new StateMachineCppExporter(json);
-		var textHeader = exporterCpp.createHeader(stateMachineName);
-		var textCpp = exporterCpp.createCpp(stateMachineName);
-		var sourcecodeSection = document.getElementById('sourcecodeSection');
-		var html = "<div><tt>"+stateMachineName+".h</tt></div>\n";
-		html += "<pre>\n" + prettyPrintOne(textHeader, "cpp") + "</pre>\n";
-		html += "<div><tt>"+stateMachineName+".cpp</tt></div>\n";
-		html += "<pre>\n" + prettyPrintOne(textCpp, "cpp") + "</pre>\n";
-		sourcecodeSection.innerHTML = html;
-	}
-	
-	function saveGeneratedCode() {
-		if (!window.stateMachine) return;
-		var text_filename = document.getElementById('statemachineName');
-		var stateMachineName = (text_filename.value || text_filename.placeholder);
-		var yamlData = window.stateMachine.exportYAML();
-		var json = jsyaml.load(yamlData);
-		
-		if (gCurrentFileExt === "cpp") {
-			var exporterCpp = new StateMachineCppExporter(json);
-			var textHeader = exporterCpp.createHeader(stateMachineName);
-			var textCpp = exporterCpp.createCpp(stateMachineName);
-			saveAs(new Blob([textHeader], {type: "text/plain;charset=" + document.characterSet}), 
-				stateMachineName + ".h");
-			saveAs(new Blob([textCpp], {type: "text/plain;charset=" + document.characterSet}), 
-				stateMachineName + ".cpp");
-		}
-		
-	}
-	
-	function setLayoutMethod() {
-		if (!window.stateMachine) return;
-		var select = document.getElementById('layoutMethod');
-		window.stateMachine.layoutMethod = select.value;
-		window.stateMachine.restoreBackup();
-	}
-	
-	function adjustCanvasFontSize(size) {
-		window.stateMachine.fontSize = size;
-	}
-	
-	-->
-	</script>
-	<!-- JavaScript plugins (requires jQuery) 
+  function importFSMFromYAML()
+  {
+    var text = document.getElementById('sourceinputarea').value;
+    var text_filename = document.getElementById('statemachineName');
+    var stateMachineName = (text_filename.value || text_filename.placeholder);
+
+    window.stateMachine = new StateMachine(stateMachineName);
+    window.stateMachine.importYAML(text);
+    //window.stateMachine.sample1();
+  }
+
+  function saveAsYAML()
+  {
+    if (!window.stateMachine) return;
+    var text = window.stateMachine.exportYAML();
+    var element = document.getElementById('output');
+    element.value = text;
+  }
+
+  function saveAsSVG()
+  {
+    if (!window.stateMachine) return;
+    var text = window.stateMachine.exportSVG();
+    var element = document.getElementById('output');
+    element.value = text;
+  }
+
+  function saveAsPNG()
+  {
+    if (!window.stateMachine) return;
+    var text = window.stateMachine.exportPNG();
+  }
+
+  function saveToDownloads() {
+    var text = document.getElementById('output');
+    var text_filename = document.getElementById('statemachineName');
+    saveAs(
+        new Blob(
+        [text.value || text.placeholder]
+      , {type: "text/plain;charset=" + document.characterSet}
+      )
+    , (text_filename.value || text_filename.placeholder) + "." + gCurrentFileExt
+    );
+
+  }
+
+  function generateCodeCpp() {
+    if (!window.stateMachine) return;
+    var text_filename = document.getElementById('statemachineName');
+    var stateMachineName = (text_filename.value || text_filename.placeholder);
+    var yamlData = window.stateMachine.exportYAML();
+    var json = jsyaml.load(yamlData);
+    var exporterCpp = new StateMachineCppExporter(json);
+    var textHeader = exporterCpp.createHeader(stateMachineName);
+    var textCpp = exporterCpp.createCpp(stateMachineName);
+    var sourcecodeSection = document.getElementById('sourcecodeSection');
+    var html = "<div><tt>"+stateMachineName+".h</tt></div>\n";
+    html += "<pre>\n" + prettyPrintOne(textHeader, "cpp") + "</pre>\n";
+    html += "<div><tt>"+stateMachineName+".cpp</tt></div>\n";
+    html += "<pre>\n" + prettyPrintOne(textCpp, "cpp") + "</pre>\n";
+    sourcecodeSection.innerHTML = html;
+  }
+
+  function saveGeneratedCode() {
+    if (!window.stateMachine) return;
+    var text_filename = document.getElementById('statemachineName');
+    var stateMachineName = (text_filename.value || text_filename.placeholder);
+    var yamlData = window.stateMachine.exportYAML();
+    var json = jsyaml.load(yamlData);
+
+    if (gCurrentFileExt === "cpp") {
+      var exporterCpp = new StateMachineCppExporter(json);
+      var textHeader = exporterCpp.createHeader(stateMachineName);
+      var textCpp = exporterCpp.createCpp(stateMachineName);
+      saveAs(new Blob([textHeader], {type: "text/plain;charset=" + document.characterSet}),
+        stateMachineName + ".h");
+      saveAs(new Blob([textCpp], {type: "text/plain;charset=" + document.characterSet}),
+        stateMachineName + ".cpp");
+    }
+
+  }
+
+  function setLayoutMethod() {
+    if (!window.stateMachine) return;
+    var select = document.getElementById('layoutMethod');
+    window.stateMachine.layoutMethod = select.value;
+    window.stateMachine.restoreBackup();
+  }
+
+  function adjustCanvasFontSize(size) {
+    window.stateMachine.fontSize = size;
+  }
+
+  -->
+  </script>
+  <!-- JavaScript plugins (requires jQuery)
     <script src="http://code.jquery.com/jquery.js"></script>
     -->
-    <script src="js/jquery.js"></script>    
+    <script src="js/jquery.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
     <!-- to beautify the generated code -->
@@ -197,10 +195,10 @@ pre {
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Font size <b class="caret"></b></a>
               <ul class="dropdown-menu">
-	              <li><a href="javascript:adjustCanvasFontSize(12)">12</a></li>
-	              <li><a href="javascript:adjustCanvasFontSize(14)">14</a></li>
-	              <li><a href="javascript:adjustCanvasFontSize(16)">16</a></li>
-	              <li><a href="javascript:adjustCanvasFontSize(20)">20</a></li>
+                <li><a href="javascript:adjustCanvasFontSize(12)">12</a></li>
+                <li><a href="javascript:adjustCanvasFontSize(14)">14</a></li>
+                <li><a href="javascript:adjustCanvasFontSize(16)">16</a></li>
+                <li><a href="javascript:adjustCanvasFontSize(20)">20</a></li>
               </ul>
             </li>
             -->
@@ -215,32 +213,32 @@ pre {
 
     <div class="container">
 
-	<div class="row">
-	  <div class="col-lg-4"><h3><input type="text" id="statemachineName" placeholder="MyStateMachine"/></h3></div>
-	  <div class="col-lg-8">
-		<div class="form-group">
-			<div class="col-lg-3">
-			<button type="button" class="btn btn-primary" onclick="if (window.stateMachine) {window.stateMachine.redraw();}">Redraw</button>
-			</div>
-			<label for="layoutMethod" class="col-lg-2 control-label">Layout method</label>
-			<div class="col-lg-4">
-				<select id="layoutMethod" class="form-control" onchange="setLayoutMethod()">
-					<option value="spring">spring</option>
-					<option value="topological">topological</option>
-				</select>
-			</div>
-			<div class="col-lg-3">
-			<button type="button" class="btn btn-danger" onclick="if (window.stateMachine) {window.stateMachine.clear();}">Clear</button>
-			</div>
-		</div>
-		  
-	  </div>
-	</div>
-	
-	<div id="canvas"></div>
+  <div class="row">
+    <div class="col-lg-4"><h3><input type="text" id="statemachineName" placeholder="MyStateMachine"/></h3></div>
+    <div class="col-lg-8">
+    <div class="form-group">
+      <div class="col-lg-3">
+      <button type="button" class="btn btn-primary" onclick="if (window.stateMachine) {window.stateMachine.redraw();}">Redraw</button>
+      </div>
+      <label for="layoutMethod" class="col-lg-2 control-label">Layout method</label>
+      <div class="col-lg-4">
+        <select id="layoutMethod" class="form-control" onchange="setLayoutMethod()">
+          <option value="spring">spring</option>
+          <option value="topological">topological</option>
+        </select>
+      </div>
+      <div class="col-lg-3">
+      <button type="button" class="btn btn-danger" onclick="if (window.stateMachine) {window.stateMachine.clear();}">Clear</button>
+      </div>
+    </div>
+
+    </div>
+  </div>
+
+  <div id="canvas"></div>
     </div> <!-- container -->
-    
-    	  <!-- Modal -->
+
+        <!-- Modal -->
   <div class="modal fade" id="modalHelpWindow">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -249,13 +247,13 @@ pre {
           <h4 class="modal-title">Help</h4>
         </div>
         <div class="modal-body">
-		<p>The whole space below is a big canvas to draw your state machine.</p>
-		<ul>
-			<li><b>Add a state:</b> double-click on the canvas</li>
-			<li><b>Add an arrow:</b> select one state, and then shift-click on a target state</li>
-			<li><b>Move something:</b> drag it around</li>
-			<li><b>Delete something:</b> click it and press the delete key (not the backspace key)</li>
-		</ul>
+    <p>The whole space below is a big canvas to draw your state machine.</p>
+    <ul>
+      <li><b>Add a state:</b> double-click on the canvas</li>
+      <li><b>Add an arrow:</b> select one state, and then shift-click on a target state</li>
+      <li><b>Move something:</b> drag it around</li>
+      <li><b>Delete something:</b> click it and press the delete key (not the backspace key)</li>
+    </ul>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -272,9 +270,9 @@ pre {
           <h4 class="modal-title">About</h4>
         </div>
         <div class="modal-body">
-	        <p>State Machine Designer by <a href="http://endavid.com">David Gavilan</a> (c) 2013 (MIT License)
-	        </p>
-	        <p>Based on the FSM Designer by <a href="http://madebyevan.com/">Evan Wallace</a>, all the code has been replaced to use <a href="http://www.graphdracula.net/">Dracula Graph Library</a> and <a href="http://getbootstrap.com/">Twitter Bootstrap 3</a>.
+          <p>State Machine Designer by <a href="http://endavid.com">David Gavilan</a> (c) 2013 (MIT License)
+          </p>
+          <p>Based on the FSM Designer by <a href="http://madebyevan.com/">Evan Wallace</a>, all the code has been replaced to use <a href="http://www.graphdracula.net/">Dracula Graph Library</a> and <a href="http://getbootstrap.com/">Twitter Bootstrap 3</a>.
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -291,7 +289,7 @@ pre {
           <h4 class="modal-title">Output</h4>
         </div>
         <div class="modal-body">
-			<textarea id="output"></textarea>
+      <textarea id="output"></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -309,7 +307,7 @@ pre {
           <h4 class="modal-title">Paste your YAML code here</h4>
         </div>
         <div class="modal-body">
-			<textarea id="sourceinputarea"></textarea>
+      <textarea id="sourceinputarea"></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -327,9 +325,9 @@ pre {
           <h4 class="modal-title">C++ code</h4>
         </div>
         <div class="modal-body" id="sourcecodeSection">
-	        <pre>
-	        (autogenerated code will appear here)
-	        </pre>
+          <pre>
+          (autogenerated code will appear here)
+          </pre>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -338,5 +336,5 @@ pre {
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
   </div><!-- /.modal -->
-    
+
 </body></html>

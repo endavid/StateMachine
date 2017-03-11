@@ -18,7 +18,7 @@
  */
 function StateMachine(name) {
   this.name = name;
-  this.graph = new Graph();
+  this.graph = new Dracula.Graph();
   this.layoutMethod = "spring";
   this.layouter = {};
   this.renderer = {};
@@ -31,7 +31,7 @@ function StateMachine(name) {
 StateMachine.prototype.importYAML = function(yamlText)
 {
   var json = jsyaml.load(yamlText);
-  this.graph = new Graph();
+  this.graph = new Dracula.Graph();
   //console.log(json);
   var n;
   // first add the nodes
@@ -79,10 +79,10 @@ StateMachine.prototype.importYAML = function(yamlText)
 StateMachine.prototype.initLayout = function()
 {
   if (this.layoutMethod === "topological") {
-    this.layouter = new Graph.Layout.Ordered(this.graph, topological_sort(this.graph));
+    this.layouter = new Dracula.Layout.Ordered(this.graph, topological_sort(this.graph));
   } else { // "spring" or default
     /* layout the graph using the Spring layout implementation */
-    this.layouter = new Graph.Layout.Spring(this.graph);
+    this.layouter = new Dracula.Layout.Spring(this.graph);
   }
 };
 
@@ -91,7 +91,7 @@ StateMachine.prototype.initRenderer = function()
   var width = $(document).width() - this.canvasOffset.x;
   var height = $(document).height() - this.canvasOffset.y;
   /* draw the graph using the RaphaelJS draw implementation */
-  this.renderer = new Graph.Renderer.Raphael('canvas', this.graph, width, height);
+  this.renderer = new Dracula.Renderer.Raphael('#canvas', this.graph, width, height);
   this.renderer.draw();
   this.saveBackup();
 };
@@ -105,7 +105,7 @@ StateMachine.prototype.redraw = function()
 
 StateMachine.prototype.clear = function()
 {
-  this.graph = new Graph();
+  this.graph = new Dracula.Graph();
   // clear the canvas
   var canvas = document.getElementById('canvas');
   canvas.innerHTML = "";
@@ -117,24 +117,24 @@ StateMachine.prototype.exportYAML = function()
 {
   var yaml = '';
   for (var n in this.graph.nodes) {
-  yaml += n + ":\n";
-  /*
-  yaml += "  attributes: {x: "+nodes[i].x + ", y: "+nodes[i].y;
-  if (nodes[i].color) {
-  yaml += ", color: \""+nodes[i].color+"\"";
-  }
-  yaml += "}\n";
-  */
-  for (var j = 0; j < this.graph.edges.length; j++) {
-  if (this.graph.edges[j].source.id === n) {
-  yaml += "  " + this.graph.edges[j].target.id + ": ";
-  if (this.graph.edges[j].style.label) {
-  yaml += "{when: \""+this.graph.edges[j].style.label+"\"}";
-  }
-  yaml += "\n";
-  }
-  }
-  yaml += "\n";
+    yaml += n + ":\n";
+    /*
+    yaml += "  attributes: {x: "+nodes[i].x + ", y: "+nodes[i].y;
+    if (nodes[i].color) {
+    yaml += ", color: \""+nodes[i].color+"\"";
+    }
+    yaml += "}\n";
+    */
+    for (var j = 0; j < this.graph.edges.length; j++) {
+      if (this.graph.edges[j].source.id === n) {
+        yaml += "  " + this.graph.edges[j].target.id + ": ";
+        if (this.graph.edges[j].label) {
+          yaml += "{when: \""+this.graph.edges[j].label+"\"}";
+        }
+          yaml += "\n";
+        }
+    }
+    yaml += "\n";
   }
   return yaml;
 };
@@ -187,12 +187,13 @@ StateMachine.prototype.restoreBackup = function()
 };
 
 // tests
+// window.stateMachine.sample1();
 StateMachine.prototype.sample1 = function()
 {
   var width = $(document).width() - 20;
   var height = $(document).height() - 60;
 
-  this.graph = new Graph();
+  this.graph = new Dracula.Graph();
 
   /* add a simple node */
   this.graph.addNode("strawberry");
@@ -231,9 +232,9 @@ StateMachine.prototype.sample1 = function()
   canvas.innerHTML = "";
 
   /* layout the graph using the Spring layout implementation */
-  this.layouter = new Graph.Layout.Spring(this.graph);
+  this.layouter = new Dracula.Layout.Spring(this.graph);
   /* draw the graph using the RaphaelJS draw implementation */
-  this.renderer = new Graph.Renderer.Raphael('canvas', this.graph, width, height);
+  this.renderer = new Dracula.Renderer.Raphael('#canvas', this.graph, width, height);
   this.renderer.draw();
 };
 
